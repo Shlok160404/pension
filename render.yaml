@@ -13,6 +13,6 @@ services:
       - key: DATABASE_URL
         value: mysql://root:mllWbhPzLfyPQoTlVARVHSWUuuuOrygX@turntable.proxy.rlwy.net:20531/railway
       - key: GEMINI_API_KEY
-        value: AIzaSyAsQ_evRzmgATFhZRIl8nvlyhSZhrkwweM
+        sync: false
       - key: PORT
         value: 8000
