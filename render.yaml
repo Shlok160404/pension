@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: pension-ai-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: mysql://root:mllWbhPzLfyPQoTlVARVHSWUuuuOrygX@turntable.proxy.rlwy.net:20531/railway
+      - key: GEMINI_API_KEY
+        value: AIzaSyAsQ_evRzmgATFhZRIl8nvlyhSZhrkwweM
+      - key: PORT
+        value: 8000
