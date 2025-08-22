@@ -11,8 +11,6 @@ import {
   ClockIcon,
   CurrencyPoundIcon,
   UsersIcon,
-  BanknotesIcon,
-  ShieldExclamationIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import Plot from 'react-plotly.js';
@@ -31,7 +29,7 @@ interface Message {
 const AdvisorDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<AdvisorDashboardData | null>(null);
   const [selectedClient, setSelectedClient] = useState<AdvisorClient | null>(null);
-  const [clientDetails, setClientDetails] = useState<ClientDetails | null>(null);
+  const [_clientDetails, setClientDetails] = useState<ClientDetails | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
