@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { CpuChipIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 import { tokenManager } from './services/api';
 import PensionAILanding from './pages/LandingPage';
 import Login from './components/auth/Login';
@@ -18,8 +17,8 @@ const pages = [
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [_isAuthenticated, setIsAuthenticated] = useState(false);
+  const [_currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -53,13 +52,7 @@ function App() {
     setCurrentPage(targetPage);
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    tokenManager.logout();
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setCurrentPage('landing');
-  };
+
 
   const CurrentComponent = pages.find(page => page.id === currentPage)?.component;
 
