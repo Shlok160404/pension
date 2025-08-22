@@ -11,9 +11,7 @@ import {
   Filter,
   RefreshCw,
   Send,
-  Eye,
-  TrendingDown,
-  Activity
+
 } from 'lucide-react';
 
 interface Message {
@@ -430,16 +428,16 @@ const RegulatorDashboard: React.FC = () => {
                   }
                 ]}
                 layout={{
-                  xaxis: { title: '', showgrid: false },
-                  yaxis: { title: '', showgrid: true, gridcolor: '#e5e7eb' },
+                  xaxis: { title: { text: '' }, showgrid: false },
+                  yaxis: { title: { text: '' }, showgrid: true, gridcolor: '#e5e7eb' },
                   plot_bgcolor: 'rgba(0,0,0,0)',
                   paper_bgcolor: 'rgba(0,0,0,0)',
                   margin: { t: 20, b: 30, l: 40, r: 20 },
                   showlegend: false,
                   hovermode: 'closest'
-                }}
-                config={{ displayModeBar: false, displaylogo: false }}
-                style={{ width: '100%', height: '100%' }}
+              }}
+              config={{ displayModeBar: false, displaylogo: false }}
+              style={{ width: '100%', height: '100%' }}
               />
             </div>
           </div>
@@ -514,17 +512,17 @@ const RegulatorDashboard: React.FC = () => {
                   }
                 ]}
                 layout={{
-                  xaxis: { title: '', showgrid: false },
-                  yaxis: { title: '', side: 'left', showgrid: true, gridcolor: '#e5e7eb' },
-                  yaxis2: { title: '', side: 'right', overlaying: 'y', showgrid: false },
+                  xaxis: { title: { text: '' }, showgrid: false },
+                  yaxis: { title: { text: '' }, side: 'left', showgrid: true, gridcolor: '#e5e7eb' },
+                  yaxis2: { title: { text: '' }, side: 'right', overlaying: 'y', showgrid: false },
                   plot_bgcolor: 'rgba(0,0,0,0)',
                   paper_bgcolor: 'rgba(0,0,0,0)',
                   margin: { t: 20, b: 30, l: 40, r: 40 },
                   hovermode: 'closest',
                   showlegend: false
-                }}
-                config={{ displayModeBar: false, displaylogo: false }}
-                style={{ width: '100%', height: '100%' }}
+              }}
+              config={{ displayModeBar: false, displaylogo: false }}
+              style={{ width: '100%', height: '100%' }}
               />
             </div>
           </div>
@@ -559,17 +557,17 @@ const RegulatorDashboard: React.FC = () => {
                   }
                 ]}
                 layout={{
-                  xaxis: { title: '', showgrid: false },
-                  yaxis: { title: '', showgrid: true, gridcolor: '#e5e7eb' },
-                  yaxis2: { title: '', side: 'right', overlaying: 'y', showgrid: false },
+                  xaxis: { title: { text: '' }, showgrid: false },
+                  yaxis: { title: { text: '' }, showgrid: true, gridcolor: '#e5e7eb' },
+                  yaxis2: { title: { text: '' }, side: 'right', overlaying: 'y', showgrid: false },
                   plot_bgcolor: 'rgba(0,0,0,0)',
                   paper_bgcolor: 'rgba(0,0,0,0)',
                   margin: { t: 20, b: 30, l: 40, r: 40 },
                   hovermode: 'closest',
                   showlegend: false
-                }}
-                config={{ displayModeBar: false, displaylogo: false }}
-                style={{ width: '100%', height: '100%' }}
+              }}
+              config={{ displayModeBar: false, displaylogo: false }}
+              style={{ width: '100%', height: '100%' }}
               />
             </div>
           </div>
