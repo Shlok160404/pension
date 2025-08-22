@@ -253,14 +253,4 @@ export const apiClient = new ApiClient(API_BASE_URL);
 // Export token manager for use in components
 export const tokenManager = TokenManager;
 
-// Export types
-export type { 
-  LoginResponse, 
-  SignupRequest, 
-  UserResponse, 
-  PromptRequest, 
-  PromptResponse,
-  AdvisorClient,
-  AdvisorDashboardData,
-  ClientDetails
-};
+
