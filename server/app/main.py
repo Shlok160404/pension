@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from .database import Base, engine, get_db
 from . import models, security, schemas
 from .workflow import graph
-from file_ingestion import ingest_pdf_to_chroma
+from ..file_ingestion import ingest_pdf_to_chroma
 from .tools.tools import set_request_user_id, clear_request_user_id, set_request_query
 
 app = FastAPI(title="Pension AI API", version="1.0.0")
