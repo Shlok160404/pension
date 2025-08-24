@@ -14,8 +14,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
-# Use sha256_crypt instead of bcrypt to avoid version compatibility issues
-pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated=[])
+# Use bcrypt and sha256_crypt to support existing bcrypt hashes and new sha256_crypt hashes
+pwd_context = CryptContext(schemes=["bcrypt", "sha256_crypt"], deprecated=["bcrypt"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
@@ -24,7 +24,18 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        print(f"Password verification error: {e}")
+        return False
+
+
+def migrate_password_hash(plain_password: str, old_hash: str) -> str:
+    """Migrate old password hash to new format"""
+    if pwd_context.verify(plain_password, old_hash):
+        return hash_password(plain_password)
+    return old_hash
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:

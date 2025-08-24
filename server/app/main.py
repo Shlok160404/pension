@@ -11,31 +11,126 @@ import json
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 
-from .database import Base, engine, get_db
-from . import models, security, schemas
-from .workflow import graph
-from ..file_ingestion import ingest_pdf_to_chroma
-from .tools.tools import set_request_user_id, clear_request_user_id, set_request_query
+from app.database import Base, engine, get_db
+from app import models, security, schemas
+from app.workflow import graph
+from app.file_ingestion import ingest_pdf_to_chroma
+from app.tools.tools import set_request_user_id, clear_request_user_id, set_request_query
+from fastapi.responses import StreamingResponse
 
-app = FastAPI(title="Pension AI API", version="1.0.0")
+app = FastAPI(
+    title="Pension AI API", 
+    version="1.0.0",
+    # Enable CORS at the app level
+    openapi_tags=[
+        {"name": "auth", "description": "Authentication endpoints"},
+        {"name": "pension", "description": "Pension management endpoints"},
+        {"name": "ai", "description": "AI workflow endpoints"},
+    ]
+)
 
 # ---------------------------
-# CORS Configuration
+# CORS Configuration - Enhanced
 # ---------------------------
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,https://pension-zeta.vercel.app")
-origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",")]
+origins = [
+    "http://localhost:5173",
+    "http://localhost:5173/",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5173/",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",  # Backend itself
+    "http://127.0.0.1:8000",
+]
+
+# Add CORS middleware BEFORE any endpoints
 app.add_middleware(
     CORSMiddleware,
-    
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=86400,
 )
+
+# Debug CORS configuration
+print(f"🔧 CORS Configuration: Allowing origins: {origins}")
+print(f"🔧 CORS Middleware added successfully")
+
+# ---------------------------
+# Simple Test Endpoint
+# ---------------------------
+@app.get("/simple-test")
+async def simple_test():
+    """Simple test endpoint"""
+    return {"message": "Simple test works!"}
+
+# ---------------------------
+# Global CORS Handler
+# ---------------------------
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    """Add CORS headers to all responses"""
+    response = await call_next(request)
+    
+    # Add CORS headers
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
+    print(f"🔧 CORS Headers added to response for: {request.url.path}")
+    return response
+
+# ---------------------------
+# CORS Preflight Handler
+# ---------------------------
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle CORS preflight requests"""
+    from fastapi.responses import JSONResponse
+    response = JSONResponse(
+        content={"message": "CORS preflight handled"},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true"
+        }
+    )
+    return response
+
+# ---------------------------
+# Test CORS Endpoint
+# ---------------------------
+@app.get("/test-cors")
+async def test_cors():
+    """Test endpoint to verify CORS is working"""
+    from fastapi.responses import JSONResponse
+    response = JSONResponse(
+        content={"message": "CORS is working!", "timestamp": "now"},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true"
+        }
+    )
+    return response
 
 # ---------------------------
 # Create database tables
 # ---------------------------
 Base.metadata.create_all(bind=engine)
+
+# ---------------------------
+# Health Check Endpoint
+# ---------------------------
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "Pension AI API", "version": "1.0.0"}
 
 # ---------------------------
 # Request/Response Models
@@ -70,6 +165,18 @@ class PromptResponse(BaseModel):
     data_source: Optional[str] = None
     search_type: Optional[str] = None
     pdf_status: Optional[str] = None
+
+# --- NEW: Response Models for AI Chat ---
+class FinalSummaryResponse(BaseModel):
+    """Structured response containing summary and optional chart data."""
+    summary: str
+    chart_data: Optional[Dict[str, Any]] = None
+    plotly_figures: Optional[Dict[str, Any]] = None
+    chart_images: Optional[Dict[str, str]] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+class ChatRequest(BaseModel):
+    query: str
 
 class DashboardData(BaseModel):
     user_id: int
@@ -152,6 +259,9 @@ async def signup(user_data: SignupRequest, db: Session = Depends(get_db)):
 @app.post("/login", response_model=LoginResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """User authentication endpoint"""
+    print(f"🔍 LOGIN ATTEMPT: Email={form_data.username}, Password length={len(form_data.password) if form_data.password else 0}")
+    print(f"🔍 CORS Headers: Request received from frontend")
+    
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
     if not user or not security.verify_password(form_data.password, user.password):
         raise HTTPException(
@@ -165,13 +275,23 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         data={"user_id": user.id, "role": user.role}, expires_delta=access_token_expires
     )
     
-    return LoginResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user_id=user.id,
-        role=user.role,
-        full_name=user.full_name
+    from fastapi.responses import JSONResponse
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user.id,
+            "role": user.role,
+            "full_name": user.full_name
+        },
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true"
+        }
     )
+    return response
 
 @app.post("/prompt", response_model=PromptResponse)
 async def process_prompt(
@@ -239,12 +359,49 @@ async def process_prompt(
         # Clean up request context
         clear_request_user_id()
 
+# -----------------------------------------------------------------
+# --- NEW SECTION 1: AI Knowledge Base Endpoint ---
+# -----------------------------------------------------------------
+@app.post("/pension/me/upload_document")
+async def upload_pension_document(
+    current_user: models.User = Depends(get_current_user),
+    file: UploadFile = File(...)
+):
+    """
+    Endpoint for an authenticated user to upload a PDF document.
+    The document will be processed and ingested into the ChromaDB knowledge base.
+    """
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Invalid file type. Only PDFs are accepted.")
+
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, file.filename)
+
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        print(f"Starting ingestion for user {current_user.id}...")
+        result = ingest_pdf_to_chroma(file_path, user_id=current_user.id)
+        
+        if result["status"] == "error":
+            raise HTTPException(status_code=500, detail=result["message"])
+
+        return {"status": "success", "filename": file.filename, "message": "Document ingested successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during file processing: {str(e)}")
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+
 @app.post("/upload_pdf")
 async def upload_pdf(
     file: UploadFile = File(...),
     current_user: models.User = Depends(get_current_user)
 ):
-    """PDF document ingestion endpoint"""
+    """PDF document ingestion endpoint - Legacy endpoint for backward compatibility"""
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
     
@@ -269,6 +426,109 @@ async def upload_pdf(
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
+
+
+# -----------------------------------------------------------------
+# --- NEW SECTION 2: AI Agent Chat Endpoint ---
+# -----------------------------------------------------------------
+security_bearer = HTTPBearer()
+
+# Authentication dependency (this is what you'd implement for production)
+async def get_current_user_id(token: str = Depends(security_bearer)) -> int:
+    """
+    Extract user_id from JWT token.
+    This is where you'd implement your actual JWT validation logic.
+    """
+    try:
+        # TODO: Implement actual JWT validation here
+        # For now, we'll simulate by extracting from the token
+        # In production, you'd decode the JWT and verify it
+        
+        # Simulate JWT decoding (replace with real implementation)
+        if token.credentials == "valid_token_102":
+            return 102
+        elif token.credentials == "valid_token_103":
+            return 103
+        else:
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
+@app.post("/chat", response_model=FinalSummaryResponse)
+async def chat_endpoint(
+    request: ChatRequest,
+    current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    Main chat endpoint that processes pension queries.
+    Uses request-scoped context for user authentication.
+    """
+    try:
+        # Set user context for this request
+        set_request_user_id(current_user_id)
+        
+        # Import and call the workflow
+        from app.workflow import graph
+        result = graph.invoke({
+            'messages': [('user', request.query)],
+            'user_id': current_user_id  # Pass user_id to workflow
+        })
+        
+        # Extract the final response
+        final_response = result.get('final_response', {})
+        
+        # Return structured response
+        return FinalSummaryResponse(
+            summary=final_response.get('summary', 'No summary available'),
+            chart_data=final_response.get('charts', {}),
+            plotly_figures=final_response.get('plotly_figs', {}),
+            chart_images=final_response.get('chart_images', {}),
+            metadata={
+                'user_id': current_user_id,
+                'query': request.query,
+                'workflow_completed': True
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Workflow error: {str(e)}")
+    
+    finally:
+        # Clean up request context
+        clear_request_user_id()
+
+@app.get("/auth/status")
+async def auth_status(current_user_id: int = Depends(get_current_user_id)):
+    """Check authentication status"""
+    return {"authenticated": True, "user_id": current_user_id}
+
+# -----------------------------------------------------------------
+# --- NEW SECTION 3: Optional Streaming Chat Endpoint ---
+# -----------------------------------------------------------------
+@app.post("/chat/stream")
+async def agent_chat_stream(
+    request: ChatRequest,
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Streaming endpoint for real-time updates from the AI workflow.
+    Useful for showing progress and intermediate steps.
+    """
+    async def event_stream():
+        query_with_context = f"User Info: id={current_user.id}, role={current_user.role}. Query: {request.query}"
+        
+        # Import workflow for streaming
+        from app.workflow import graph
+        async for event in graph.astream({
+            "messages": [("user", query_with_context)],
+            "user_id": current_user.id  # Pass user_id to workflow
+        }):
+            print("--- STREAMING EVENT TO CLIENT ---", event)
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
 
 # ---------------------------
 # Role-Based Endpoints
@@ -958,6 +1218,15 @@ async def get_advisor_client_details(
     }
 
 # ---------------------------
+# Utility Endpoints
+# ---------------------------
+
+@app.get("/users/me", response_model=schemas.UserResponse)
+async def get_current_user_info(current_user: models.User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user
+
+# ---------------------------
 # Legacy endpoints for backward compatibility
 # ---------------------------
 
@@ -1015,7 +1284,7 @@ async def get_output_data(current_user: models.User = Depends(get_current_user),
         
         # Convert to legacy format
         grouped_data = []
-        for risk_level, data in dashboard_data["fraud_analysis"]["risk_groups"].items():
+        for risk_level, data in dashboard_data["grouped_data"]["by_risk_tolerance"].items():
             users = [
                 DashboardData(
                     user_id=u["user_id"],
@@ -1095,19 +1364,7 @@ async def get_dashboard_analytics(
     else:
         raise HTTPException(status_code=403, detail="Invalid role for this endpoint")
 
-# ---------------------------
-# Utility Endpoints
-# ---------------------------
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "Pension AI API", "version": "1.0.0"}
-
-@app.get("/users/me", response_model=schemas.UserResponse)
-async def get_current_user_info(current_user: models.User = Depends(get_current_user)):
-    """Get current user information"""
-    return current_user
 
 @app.get("/users/{user_id}/dashboard")
 async def get_user_dashboard(
@@ -1158,7 +1415,9 @@ async def get_user_dashboard(
         }
     }
 
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

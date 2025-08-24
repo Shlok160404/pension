@@ -108,20 +108,18 @@ def start_server():
     os.environ.setdefault('PORT', '8000')
     
     try:
-        # Start uvicorn server
-        cmd = [
-            sys.executable, '-m', 'uvicorn',
-            'app.main:app',
-            '--host', os.environ.get('HOST', '0.0.0.0'),
-            '--port', os.environ.get('PORT', '8000'),
-            '--reload'
-        ]
+        # Import and run the FastAPI app directly
+        import uvicorn
+        from app.main import app
         
-        print(f"Starting server on {os.environ.get('HOST', '0.0.0.0')}:{os.environ.get('PORT', '8000')}")
+        host = os.environ.get('HOST', '0.0.0.0')
+        port = int(os.environ.get('PORT', '8000'))
+        
+        print(f"Starting server on {host}:{port}")
         print("Press Ctrl+C to stop the server")
         print("\n" + "="*50)
         
-        subprocess.run(cmd)
+        uvicorn.run("app.main:app", host=host, port=port, reload=True)
         
     except KeyboardInterrupt:
         print("\n\n🛑 Server stopped by user")

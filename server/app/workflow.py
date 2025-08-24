@@ -111,7 +111,18 @@ def build_agent_workflow():
             agent_input["user_id"] = user_id
             print(f"🔍 Workflow: Passing user_id={user_id} to agent")
         else:
-            print(f"⚠️ Workflow: No user_id found in state: {state.keys()}")
+            # Try to get user_id from context if not in state
+            try:
+                from .tools.tools import get_current_user_id_from_context
+                context_user_id = get_current_user_id_from_context()
+                if context_user_id:
+                    user_id = context_user_id
+                    agent_input["user_id"] = user_id
+                    print(f"🔍 Workflow: Got user_id={user_id} from context")
+                else:
+                    print(f"⚠️ Workflow: No user_id found in state or context")
+            except Exception as e:
+                print(f"⚠️ Workflow: Error getting user_id from context: {e}")
 
         result = agent_runnable(agent_input)
 

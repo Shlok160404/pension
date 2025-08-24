@@ -1,4 +1,31 @@
 #tools.py
+"""
+Enhanced Pension AI Tools with Merged Features
+
+This file combines the advanced role-based context detection and regulator tools
+from the current version with enhanced features from the uploaded version:
+
+MERGED FEATURES:
+1. Enhanced ML-based fraud detection with XGBoost model fallback
+2. Better projection service integration with the projection agent
+3. Improved context management with cleaner fallback mechanisms
+4. Enhanced error handling and logging throughout all tools
+
+ENHANCED TOOLS:
+- analyze_risk_profile: Role-based context detection with advisor/regulator support
+- detect_fraud: ML model + rule-based fallback with comprehensive feature extraction
+- project_pension: Integration with projection service for more accurate calculations
+- knowledge_base_search: Dual search (general + user documents) with role-based access
+- analyze_uploaded_document: Enhanced document analysis with better error handling
+- Regulator tools: System-wide analysis capabilities for oversight
+
+CONTEXT MANAGEMENT:
+- Request-scoped context (production)
+- Global fallback variables
+- Thread-local storage (testing)
+- Role-based access control
+"""
+
 import json
 from typing import Dict, Any, List, Optional
 
@@ -139,6 +166,7 @@ class FraudToolInput(BaseModel):
 def detect_fraud(user_id: int = None) -> Dict[str, Any]:
     """
     Analyzes a user's recent transactions based on their ID to detect potential fraud.
+    Uses ML model fallback for more accurate detection when available.
     Evaluates data against fixed rules and returns a structured JSON assessment.
     """
     # PRIORITY 1: Get current user's ID from request context (most secure)
@@ -182,8 +210,371 @@ def detect_fraud(user_id: int = None) -> Dict[str, Any]:
             "Transaction_Amount": pension_data.transaction_amount,
             "Suspicious_Flag": pension_data.suspicious_flag,
             "Anomaly_Score": pension_data.anomaly_score,
-            "Geo_Location": pension_data.geo_location
+            "Geo_Location": pension_data.geo_location,
+            "Age": pension_data.age,
+            "Annual_Income": pension_data.annual_income,
+            "Current_Savings": pension_data.current_savings,
+            "Retirement_Age_Goal": pension_data.retirement_age_goal,
+            "Contribution_Amount": pension_data.contribution_amount,
+            "Employer_Contribution": pension_data.employer_contribution,
+            "Total_Annual_Contribution": pension_data.total_annual_contribution,
+            "Years_Contributed": pension_data.years_contributed,
+            "Annual_Return_Rate": pension_data.annual_return_rate,
+            "Volatility": pension_data.volatility,
+            "Fees_Percentage": pension_data.fees_percentage,
+            "Projected_Pension_Amount": pension_data.projected_pension_amount,
+            "Expected_Annual_Payout": pension_data.expected_annual_payout,
+            "Inflation_Adjusted_Payout": pension_data.inflation_adjusted_payout,
+            "Years_of_Payout": pension_data.years_of_payout,
+            "Number_of_Dependents": pension_data.number_of_dependents,
+            "Life_Expectancy_Estimate": pension_data.life_expectancy_estimate,
+            "Debt_Level": pension_data.debt_level,
+            "Monthly_Expenses": pension_data.monthly_expenses,
+            "Savings_Rate": pension_data.savings_rate,
+            "Portfolio_Diversity_Score": pension_data.portfolio_diversity_score,
+            "Transaction_Pattern_Score": pension_data.transaction_pattern_score,
+            "Account_Age": pension_data.account_age,
+            "Gender": pension_data.gender,
+            "Employment_Status": pension_data.employment_status,
+            "Risk_Tolerance": pension_data.risk_tolerance,
+            "Contribution_Frequency": pension_data.contribution_frequency,
+            "Investment_Type": pension_data.investment_type,
+            "Survivor_Benefits": pension_data.survivor_benefits,
+            "Marital_Status": pension_data.marital_status,
+            "Education_Level": pension_data.education_level,
+            "Health_Status": pension_data.health_status,
+            "Home_Ownership_Status": pension_data.home_ownership_status,
+            "Investment_Experience_Level": pension_data.investment_experience_level,
+            "Financial_Goals": pension_data.financial_goals,
+            "Insurance_Coverage": pension_data.insurance_coverage,
+            "Tax_Benefits_Eligibility": pension_data.tax_benefits_eligibility,
+            "Government_Pension_Eligibility": pension_data.government_pension_eligibility,
+            "Private_Pension_Eligibility": pension_data.private_pension_eligibility,
+            "Pension_Type": pension_data.pension_type,
+            "Withdrawal_Strategy": pension_data.withdrawal_strategy,
+            "Transaction_Channel": pension_data.transaction_channel,
+            "Previous_Fraud_Flag": pension_data.previous_fraud_flag
         }
+        
+        # TRY ML MODEL FIRST (MORE ACCURATE)
+        try:
+            import joblib
+            import os
+            
+            # Look for the fraud model in multiple locations
+            model_paths = [
+                "fraud_final_model.joblib",  # Current directory
+                "../fraud_final_model.joblib",  # Parent directory
+                "app/fraud_final_model.joblib",  # App directory
+                os.path.join(os.path.dirname(__file__), "..", "fraud_final_model.joblib")  # Relative to tools
+            ]
+            
+            fraud_model = None
+            for path in model_paths:
+                if os.path.exists(path):
+                    print(f"🔍 Loading fraud model from: {path}")
+                    fraud_model = joblib.load(path)
+                    break
+            
+            if fraud_model:
+                print("🚀 Using ML model for fraud detection")
+                
+                # Extract model components from the dictionary
+                if isinstance(fraud_model, dict) and 'model' in fraud_model:
+                    xgb_model = fraud_model['model']
+                    scaler = fraud_model['scaler']
+                    training_columns = fraud_model.get('training_columns', [])
+                    print(f"📊 Model components: XGBoost classifier, StandardScaler, {len(training_columns)} training columns")
+                else:
+                    # Direct model (fallback)
+                    xgb_model = fraud_model
+                    scaler = None
+                    training_columns = []
+                
+                # Prepare features for ML model
+                # Create a 69-feature vector matching the training data structure
+                features = [0.0] * 69  # Initialize with zeros
+                
+                # Numeric features (direct mapping)
+                features[0] = float(user_data.get("Age", 0) or 0)  # Age
+                features[1] = float(user_data.get("Annual_Income", 0) or 0)  # Annual_Income
+                features[2] = float(user_data.get("Current_Savings", 0) or 0)  # Current_Savings
+                features[3] = float(user_data.get("Retirement_Age_Goal", 0) or 0)  # Retirement_Age_Goal
+                features[4] = float(user_data.get("Contribution_Amount", 0) or 0)  # Contribution_Amount
+                features[5] = float(user_data.get("Employer_Contribution", 0) or 0)  # Employer_Contribution
+                features[6] = float(user_data.get("Total_Annual_Contribution", 0) or 0)  # Total_Annual_Contribution
+                features[7] = float(user_data.get("Years_Contributed", 0) or 0)  # Years_Contributed
+                features[8] = float(user_data.get("Annual_Return_Rate", 0) or 0)  # Annual_Return_Rate
+                features[9] = float(user_data.get("Volatility", 0) or 0)  # Volatility
+                features[10] = float(user_data.get("Fees_Percentage", 0) or 0)  # Fees_Percentage
+                features[11] = float(user_data.get("Projected_Pension_Amount", 0) or 0)  # Projected_Pension_Amount
+                features[12] = float(user_data.get("Expected_Annual_Payout", 0) or 0)  # Expected_Annual_Payout
+                features[13] = float(user_data.get("Inflation_Adjusted_Payout", 0) or 0)  # Inflation_Adjusted_Payout
+                features[14] = float(user_data.get("Years_of_Payout", 0) or 0)  # Years_of_Payout
+                features[15] = float(user_data.get("Transaction_Amount", 0) or 0)  # Transaction_Amount
+                features[16] = float(user_data.get("Anomaly_Score", 0) or 0)  # Anomaly_Score
+                features[17] = float(user_data.get("Number_of_Dependents", 0) or 0)  # Number_of_Dependents
+                features[18] = float(user_data.get("Life_Expectancy_Estimate", 0) or 0)  # Life_Expectancy_Estimate
+                features[19] = float(user_data.get("Debt_Level", 0) or 0)  # Debt_Level
+                features[20] = float(user_data.get("Monthly_Expenses", 0) or 0)  # Monthly_Expenses
+                features[21] = float(user_data.get("Savings_Rate", 0) or 0)  # Savings_Rate
+                features[22] = float(user_data.get("Portfolio_Diversity_Score", 0) or 0)  # Portfolio_Diversity_Score
+                features[23] = float(user_data.get("Transaction_Pattern_Score", 0) or 0)  # Transaction_Pattern_Score
+                features[24] = float(user_data.get("Account_Age", 0) or 0)  # Account_Age
+                
+                # Categorical features (one-hot encoding)
+                # Gender encoding
+                gender = user_data.get("Gender", "").lower()
+                if gender == "male":
+                    features[25] = 1.0  # Gender_Male
+                elif gender == "other":
+                    features[26] = 1.0  # Gender_Other
+                # Female is default (all 0)
+                
+                # Country encoding
+                country = user_data.get("Country", "").lower()
+                if country == "canada":
+                    features[27] = 1.0  # Country_Canada
+                elif country == "germany":
+                    features[28] = 1.0  # Country_Germany
+                elif country == "uk":
+                    features[29] = 1.0  # Country_UK
+                elif country == "usa" or country == "us":
+                    features[30] = 1.0  # Country_USA
+                # Default country is 0
+                
+                # Employment status encoding
+                emp_status = user_data.get("Employment_Status", "").lower()
+                if "part" in emp_status:
+                    features[31] = 1.0  # Employment_Status_Part-time
+                elif "retire" in emp_status:
+                    features[32] = 1.0  # Employment_Status_Retired
+                elif "self" in emp_status:
+                    features[33] = 1.0  # Employment_Status_Self-employed
+                elif "unemploy" in emp_status:
+                    features[34] = 1.0  # Employment_Status_Unemployed
+                # Full-time is default (all 0)
+                
+                # Risk tolerance encoding
+                risk_tol = user_data.get("Risk_Tolerance", "").lower()
+                if risk_tol == "low":
+                    features[35] = 1.0  # Risk_Tolerance_Low
+                elif risk_tol == "medium":
+                    features[36] = 1.0  # Risk_Tolerance_Medium
+                # High is default (all 0)
+                
+                # Contribution frequency encoding
+                contrib_freq = user_data.get("Contribution_Frequency", "").lower()
+                if contrib_freq == "monthly":
+                    features[37] = 1.0  # Contribution_Frequency_Monthly
+                elif contrib_freq == "quarterly":
+                    features[38] = 1.0  # Contribution_Frequency_Quarterly
+                # Annual is default (all 0)
+                
+                # Investment type encoding
+                inv_type = user_data.get("Investment_Type", "").lower()
+                if inv_type == "etf":
+                    features[39] = 1.0  # Investment_Type_ETF
+                elif inv_type == "mutual fund":
+                    features[40] = 1.0  # Investment_Type_Mutual Fund
+                elif inv_type == "real estate":
+                    features[41] = 1.0  # Investment_Type_Real Estate
+                elif inv_type == "stocks":
+                    features[42] = 1.0  # Investment_Type_Stocks
+                # Bonds is default (all 0)
+                
+                # Survivor benefits encoding
+                if user_data.get("Survivor_Benefits", False):
+                    features[43] = 1.0  # Survivor_Benefits_Yes
+                
+                # Marital status encoding
+                marital = user_data.get("Marital_Status", "").lower()
+                if marital == "married":
+                    features[44] = 1.0  # Marital_Status_Married
+                elif marital == "single":
+                    features[45] = 1.0  # Marital_Status_Single
+                elif marital == "widowed":
+                    features[46] = 1.0  # Marital_Status_Widowed
+                # Divorced is default (all 0)
+                
+                # Education level encoding
+                education = user_data.get("Education_Level", "").lower()
+                if "high school" in education:
+                    features[47] = 1.0  # Education_Level_High School
+                elif "master" in education:
+                    features[48] = 1.0  # Education_Level_Master's
+                elif "phd" in education:
+                    features[49] = 1.0  # Education_Level_PhD
+                # Bachelor's is default (all 0)
+                
+                # Health status encoding
+                health = user_data.get("Health_Status", "").lower()
+                if health == "good":
+                    features[50] = 1.0  # Health_Status_Good
+                elif health == "poor":
+                    features[51] = 1.0  # Health_Status_Poor
+                # Excellent is default (all 0)
+                
+                # Home ownership encoding
+                home_own = user_data.get("Home_Ownership_Status", "").lower()
+                if home_own == "own":
+                    features[52] = 1.0  # Home_Ownership_Status_Own
+                elif home_own == "rent":
+                    features[53] = 1.0  # Home_Ownership_Status_Rent
+                # Mortgage is default (all 0)
+                
+                # Investment experience encoding
+                inv_exp = user_data.get("Investment_Experience_Level", "").lower()
+                if inv_exp == "expert":
+                    features[54] = 1.0  # Investment_Experience_Level_Expert
+                elif inv_exp == "intermediate":
+                    features[55] = 1.0  # Investment_Experience_Level_Intermediate
+                # Beginner is default (all 0)
+                
+                # Financial goals encoding
+                fin_goals = user_data.get("Financial_Goals", "").lower()
+                if "home" in fin_goals:
+                    features[56] = 1.0  # Financial_Goals_Home Purchase
+                elif "legacy" in fin_goals:
+                    features[57] = 1.0  # Financial_Goals_Legacy Planning
+                elif "travel" in fin_goals:
+                    features[58] = 1.0  # Financial_Goals_Travel
+                # Retirement is default (all 0)
+                
+                # Insurance coverage encoding
+                if user_data.get("Insurance_Coverage", False):
+                    features[59] = 1.0  # Insurance_Coverage_Yes
+                
+                # Tax benefits eligibility encoding
+                if user_data.get("Tax_Benefits_Eligibility", False):
+                    features[60] = 1.0  # Tax_Benefits_Eligibility_Yes
+                
+                # Government pension eligibility encoding
+                if user_data.get("Government_Pension_Eligibility", False):
+                    features[61] = 1.0  # Government_Pension_Eligibility_Yes
+                
+                # Private pension eligibility encoding
+                if user_data.get("Private_Pension_Eligibility", False):
+                    features[62] = 1.0  # Private_Pension_Eligibility_Yes
+                
+                # Pension type encoding
+                pension_type = user_data.get("Pension_Type", "").lower()
+                if "defined contribution" in pension_type:
+                    features[63] = 1.0  # Pension_Type_Defined Contribution
+                # Defined Benefit is default (all 0)
+                
+                # Withdrawal strategy encoding
+                withdrawal = user_data.get("Withdrawal_Strategy", "").lower()
+                if withdrawal == "dynamic":
+                    features[64] = 1.0  # Withdrawal_Strategy_Dynamic
+                elif withdrawal == "fixed":
+                    features[65] = 1.0  # Withdrawal_Strategy_Fixed
+                # Systematic is default (all 0)
+                
+                # Transaction channel encoding
+                trans_channel = user_data.get("Transaction_Channel", "").lower()
+                if trans_channel == "branch":
+                    features[66] = 1.0  # Transaction_Channel_Branch
+                elif trans_channel == "online":
+                    features[67] = 1.0  # Transaction_Channel_Online
+                # Mobile is default (all 0)
+                
+                # Previous fraud flag encoding
+                if user_data.get("Previous_Fraud_Flag", False):
+                    features[68] = 1.0  # Previous_Fraud_Flag_Yes
+                
+                print(f"✅ Created feature vector with {len(features)} features")
+                print(f"📊 Feature summary: {sum(features[:25]):.1f} numeric + {sum(features[25:]):.0f} categorical")
+                
+                # Scale features if scaler is available
+                if scaler is not None:
+                    try:
+                        features_scaled = scaler.transform([features])
+                        print(f"✅ Features scaled using StandardScaler")
+                    except Exception as e:
+                        print(f"⚠️ Scaling failed: {e}, using unscaled features")
+                        features_scaled = [features]
+                else:
+                    features_scaled = [features]
+                
+                # Make prediction
+                try:
+                    prediction = xgb_model.predict(features_scaled)
+                    prediction_proba = xgb_model.predict_proba(features_scaled) if hasattr(xgb_model, 'predict_proba') else None
+                    print(f"✅ ML prediction successful: {prediction[0]}")
+                except Exception as e:
+                    print(f"⚠️ ML prediction failed: {e}, falling back to rule-based")
+                    raise e
+                
+                # Determine fraud risk based on prediction
+                if prediction[0] == 1:  # Assuming 1 = fraud, 0 = no fraud
+                    fraud_risk = "High"
+                    fraud_score = 0.9
+                else:
+                    fraud_risk = "Low"
+                    fraud_score = 0.1
+                
+                # Get probability if available
+                if prediction_proba is not None:
+                    fraud_score = float(prediction_proba[0][1])  # Probability of fraud class
+                    if fraud_score > 0.7:
+                        fraud_risk = "High"
+                    elif fraud_score > 0.3:
+                        fraud_risk = "Medium"
+                    else:
+                        fraud_risk = "Low"
+                
+                # Generate suspicious factors based on ML prediction
+                suspicious_factors = []
+                if fraud_score > 0.5:
+                    suspicious_factors.append("ML model detected high fraud probability")
+                if user_data["Suspicious_Flag"]:
+                    suspicious_factors.append("Transaction flagged as suspicious")
+                if user_data["Anomaly_Score"] and user_data["Anomaly_Score"] > 0.8:
+                    suspicious_factors.append("High anomaly score detected")
+                if user_data["Country"] != user_data["Geo_Location"]:
+                    suspicious_factors.append("Geographic location mismatch")
+                
+                # Generate recommendations
+                recommendations = []
+                if fraud_risk == "High":
+                    recommendations.extend([
+                        "Immediately freeze account",
+                        "Contact fraud department",
+                        "Review recent transactions",
+                        "Change security credentials"
+                    ])
+                elif fraud_risk == "Medium":
+                    recommendations.extend([
+                        "Monitor account closely",
+                        "Enable additional security",
+                        "Review transaction patterns"
+                    ])
+                else:
+                    recommendations.extend([
+                        "Continue normal monitoring",
+                        "Maintain current security measures"
+                    ])
+                
+                return {
+                    "fraud_risk": fraud_risk,
+                    "fraud_score": round(fraud_score, 3),
+                    "suspicious_factors": suspicious_factors,
+                    "recommendations": recommendations,
+                    "summary": f"ML model analysis: {fraud_risk} risk level with {fraud_score:.1%} fraud probability",
+                    "method": "ML Model",
+                    "confidence": "High",
+                    "model_type": "XGBoost",
+                    "features_used": len(features),
+                    "data_source": "DATABASE_PENSION_DATA",
+                    "note": "This fraud detection analysis is based on your pension data stored in our database, not from uploaded documents."
+                }
+                
+        except Exception as e:
+            print(f"⚠️ ML model failed: {e}, falling back to rule-based detection")
+        
+        # FALLBACK: RULE-BASED DETECTION
+        print("🔍 Using rule-based fraud detection (fallback)")
         
         prompt = f"""
         **SYSTEM:** You are a Financial Fraud Detection System...
@@ -203,11 +594,14 @@ def detect_fraud(user_id: int = None) -> Dict[str, Any]:
         response = json_llm.invoke(prompt)
         result = json.loads(response.content)
         
-        # Add data source information
+        # Add method indicator and data source information
+        result["method"] = "Rule-Based"
+        result["confidence"] = "Medium"
         result["data_source"] = "DATABASE_PENSION_DATA"
         result["note"] = "This fraud detection analysis is based on your pension data stored in our database, not from uploaded documents."
         
         return result
+        
     finally:
         db.close()
 
@@ -367,7 +761,44 @@ def project_pension(user_id: int = None, query: str = None) -> Dict[str, Any]:
         # Calculate savings rate
         savings_rate_percentage = (total_annual_contribution / annual_income) * 100 if annual_income > 0 else 0
         
-        # Calculate projections based on pension type with realistic limits
+        # Try to get projections from the projection service first (more accurate)
+        try:
+            from ..agents.services.projection import run_projection_agent
+            
+            user_data_for_projection = {
+                "current_savings": current_savings,
+                "annual_income": annual_income,
+                "age": age,
+                "retirement_age": retirement_age_goal,
+                "annual_contribution": total_annual_contribution,
+                "risk_tolerance": pension_data.risk_tolerance,
+                "pension_type": pension_type
+            }
+            
+            scenario_params = {
+                "inflation_rate": 0.025,  # 2.5% inflation
+                "return_rate": annual_return_rate,
+                "years": years_to_retirement
+            }
+            
+            print(f"🔍 Projection Service: Calling projection agent with params: {scenario_params}")
+            projection_result = run_projection_agent(user_data_for_projection, scenario_params)
+            
+            # Extract projection data
+            projected_balance = projection_result.get("projected_balance", 0)
+            nominal_projection = projection_result.get("nominal_projection", 0)
+            inflation_adjusted = projection_result.get("inflation_adjusted", True)
+            
+            print(f"🔍 Projection Service: Successfully got projections - Balance: {projected_balance}, Nominal: {nominal_projection}")
+            
+        except Exception as e:
+            print(f"⚠️ Projection service unavailable: {e}, falling back to basic calculations")
+            # Fallback calculations
+            projected_balance = current_savings * (1.08 ** years_to_retirement) if years_to_retirement > 0 else current_savings
+            nominal_projection = projected_balance
+            inflation_adjusted = False
+        
+        # Calculate projections based on pension type with realistic limits (fallback)
         if pension_type.lower() in ["defined contribution", "dc", "defined contribution plan"]:
             # DEFINED CONTRIBUTION: Future value based on contributions + investment returns
             if years_to_retirement > 0:
@@ -1594,6 +2025,33 @@ def extract_user_id_from_input(input_value) -> Optional[int]:
     
     print(f"🔍 Input Cleanup: Could not extract user_id from '{input_value}'")
     return None
+
+# Enhanced context management functions from the uploaded version
+def set_current_user_id(user_id: int):
+    """Set the current user_id for the current thread (for testing)"""
+    import threading
+    threading.current_thread().user_id = user_id
+    print(f"🔍 Context: Set user_id={user_id} in thread context (testing)")
+
+def clear_current_user_id():
+    """Clear the current user_id for the current thread"""
+    import threading
+    if hasattr(threading.current_thread(), 'user_id'):
+        delattr(threading.current_thread(), 'user_id')
+        print(f"🔍 Context: Cleared user_id from thread context (testing)")
+
+def set_current_query(query: str):
+    """Set the current query for the current thread (for testing)"""
+    import threading
+    threading.current_thread().current_query = query
+    print(f"🔍 Context: Set query='{query}' in thread context (testing)")
+
+def clear_current_query():
+    """Clear the current query for the current thread"""
+    import threading
+    if hasattr(threading.current_thread(), 'current_query'):
+        delattr(threading.current_thread(), 'current_query')
+        print(f"🔍 Context: Cleared query from thread context (testing)")
 
 # Context manager for setting user_id during testing
 import threading
