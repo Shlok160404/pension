@@ -39,11 +39,14 @@ const AdvisorDashboard: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   const quickQueries = [
-    "Show risk analysis",
-    "Fraud detection report",
-    "Portfolio performance",
-    "Pension projection",
-    "Investment recommendations"
+    "📊 Portfolio Performance Analysis",
+    "🎯 Risk-Adjusted Return Metrics",
+    "💰 Asset Allocation Breakdown",
+    "🚨 Fraud Risk Assessment",
+    "🔍 Retirement Projection",
+    "💡 Investment Recommendations",
+    "🛡️ AegisAI Risk Insights",
+    "📈 Market Trend Analysis"
   ];
 
   // Load dashboard data on component mount
@@ -200,6 +203,45 @@ const AdvisorDashboard: React.FC = () => {
     return 'text-green-600 bg-green-100';
   };
 
+  // Enhanced message formatting function for better UX - only for AI responses
+  const formatMessageContent = (content: string, messageType: 'user' | 'assistant') => {
+    if (!content) return null;
+
+    // For user messages, just return simple text without formatting
+    if (messageType === 'user') {
+      return <p className="leading-relaxed">{content}</p>;
+    }
+
+    // For AI assistant messages, apply the enhanced formatting
+    const paragraphs = content.split('\n').filter(p => p.trim());
+    
+    return (
+      <div className="space-y-3">
+        {paragraphs.map((paragraph, index) => {
+          const hasNumbers = /\d+%|\d+\.\d+|\d+/.test(paragraph);
+          
+          return (
+            <div key={index} className={`${hasNumbers ? 'bg-blue-50 p-3 rounded-lg border-l-4 border-blue-200' : ''}`}>
+              <p className="leading-relaxed">
+                {paragraph.split(' ').map((word, wordIndex) => {
+                  if (/\d+%|\d+\.\d+|\d+/.test(word) || 
+                      ['risk', 'fraud', 'client', 'portfolio', 'allocation', 'growth', 'return', 'score', 'value', 'total', 'income', 'savings', 'equity', 'bonds', 'cash', 'volatility', 'sharpe', 'drawdown', 'benchmark', 'performance'].some(term => word.toLowerCase().includes(term))) {
+                    return (
+                      <span key={wordIndex} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold mx-1 border border-blue-200 shadow-sm hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-default">
+                        {word}
+                      </span>
+                    );
+                  }
+                  return <span key={wordIndex}>{word} </span>;
+                })}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const handleLogout = () => {
     tokenManager.logout();
     // Redirect to landing page or refresh the page
@@ -259,8 +301,8 @@ const AdvisorDashboard: React.FC = () => {
               <CpuChipIcon className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Pension AI Advisor</h1>
-              <p className="text-sm text-gray-500">Client Portfolio Management & Analysis</p>
+              <h1 className="text-xl font-bold text-gray-900">AegisAI Professional Advisor</h1>
+              <p className="text-sm text-gray-500">Portfolio Analytics & Risk Management Platform</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -386,93 +428,163 @@ const AdvisorDashboard: React.FC = () => {
 
                    {/* Risk Metrics Row */}
                    <div className="grid grid-cols-2 gap-3 mb-4">
-                     <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h4 className="text-xs font-medium text-gray-900 mb-2">Risk Tolerance</h4>
-                       <div className="flex items-center justify-between">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(selectedClient?.risk_tolerance || '')}`}>
-                          {selectedClient?.risk_tolerance} Risk
-                         </span>
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getFraudRiskColor(selectedClient?.anomaly_score || 0)}`}>
-                          Score: {(selectedClient?.anomaly_score || 0).toFixed(2)}
-                         </span>
-                       </div>
-                     </div>
+                                                                 <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h4 className="text-xs font-medium text-gray-900 mb-3">Risk Profile Analysis</h4>
+                        
+                        {/* Risk Score Visualization */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-700">Risk Score</span>
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getFraudRiskColor(selectedClient?.anomaly_score || 0)}`}>
+                              {(selectedClient?.anomaly_score || 0).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                (selectedClient?.anomaly_score || 0) > 0.8 ? 'bg-red-500' : 
+                                (selectedClient?.anomaly_score || 0) > 0.5 ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${((selectedClient?.anomaly_score || 0) * 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Risk Tolerance Badge */}
+                        <div className="mb-3">
+                          <span className={`inline-flex px-3 py-2 rounded-lg text-sm font-semibold ${getRiskColor(selectedClient?.risk_tolerance || '')}`}>
+                            {selectedClient?.risk_tolerance} Risk Profile
+                          </span>
+                        </div>
+
+                        {/* Risk Assessment */}
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-center space-x-2 mb-2">
+                            {selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.5 ? 
+                              <span className="text-green-600">✅</span> :
+                             selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.8 ? 
+                              <span className="text-yellow-600">⚠️</span> :
+                              <span className="text-red-600">🚨</span>
+                            }
+                            <span className="text-xs font-semibold text-gray-800">
+                              {selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.5 ? 
+                                'Excellent Risk Profile' :
+                               selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.8 ? 
+                                'Moderate Risk Profile' :
+                                'High Risk Profile'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-700 leading-relaxed">
+                            {selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.5 ? 
+                              'Portfolio shows excellent risk-adjusted returns with controlled volatility. Current risk metrics are well within acceptable parameters.' :
+                             selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.8 ? 
+                              'Portfolio demonstrates moderate risk exposure requiring regular monitoring. Consider risk mitigation strategies.' :
+                              'Portfolio exhibits elevated risk levels requiring immediate attention. Implement defensive positioning and risk controls.'}
+                          </p>
+                        </div>
+                      </div>
                      
-                     <div className="bg-white rounded-lg p-3 border border-gray-200">
-                       <h4 className="text-xs font-medium text-gray-900 mb-2">Portfolio Breakdown</h4>
-                       <div className="flex items-center justify-center h-16">
-                         <Plot
-                           data={[
-                             {
-                               values: [
-                                selectedClient?.current_savings || 0,
-                                Math.max(0, (selectedClient?.annual_income || 0) - (selectedClient?.current_savings || 0))
-                               ],
-                               labels: ['Savings', 'Growth'],
-                               type: 'pie',
-                               marker: { colors: ['#10B981', '#3B82F6'] },
-                               textinfo: 'percent',
-                               textposition: 'inside',
-                               hole: 0.6
-                             }
-                           ]}
-                           layout={{
-                             width: 100,
-                             height: 100,
-                             showlegend: false,
-                             margin: { t: 0, b: 0, l: 0, r: 0 },
-                             plot_bgcolor: 'rgba(0,0,0,0)',
-                             paper_bgcolor: 'rgba(0,0,0,0)',
-                           }}
-                           config={{ displayModeBar: false }}
-                         />
-                       </div>
+                                                                 <div className="bg-white rounded-lg p-4 border border-gray-200">
+                       <h4 className="text-xs font-medium text-gray-900 mb-3">Annual Income vs Savings Analysis</h4>
+                                               <div className="flex items-center justify-center h-80">
+                                                     <Plot
+                             data={[
+                               {
+                                 type: 'pie',
+                                 labels: ['Annual Income', 'Current Savings'],
+                                 values: [
+                                   selectedClient?.annual_income || 0,
+                                   selectedClient?.current_savings || 0
+                                 ],
+                                 marker: { 
+                                   colors: ['#3B82F6', '#10B981'],
+                                   line: { color: '#ffffff', width: 2 }
+                                 },
+                                 textinfo: 'label+percent',
+                                 textposition: 'outside',
+                                 hole: 0.3,
+                                 textfont: { size: 10, family: 'Arial', color: '#374151' },
+                                 texttemplate: '<b>%{label}</b><br>£%{value:,.0f}<br>(%{percent:.1%})',
+                                 hoverinfo: 'label+percent',
+                                 hovertemplate: '<b>%{label}</b><br>£%{value:,.0f}<br>(%{percent:.1%})<extra></extra>'
+                               }
+                             ]}
+                             layout={{
+                               width: 300,
+                               height: 350,
+                               showlegend: false,
+                               margin: { t: 40, b: 40, l: 40, r: 40 },
+                               plot_bgcolor: 'rgba(0,0,0,0)',
+                               paper_bgcolor: 'rgba(0,0,0,0)',
+                               title: {
+                                 text: 'Income vs Savings',
+                                 font: { size: 14, color: '#374151' },
+                                 x: 0.5,
+                                 xanchor: 'center'
+                               },
+                               annotations: [
+                                 {
+                                   text: `Total: £${((selectedClient?.annual_income || 0) + (selectedClient?.current_savings || 0)).toLocaleString()}`,
+                                   showarrow: false,
+                                   x: 0.5,
+                                   y: 0.5,
+                                   font: { size: 12, color: '#374151' },
+                                   bgcolor: 'rgba(255,255,255,0.8)',
+                                   bordercolor: '#e5e7eb',
+                                   borderwidth: 1
+                                 }
+                               ]
+                             }}
+                             config={{ displayModeBar: false }}
+                           />
+                        </div>
                      </div>
                    </div>
 
-                   {/* Charts Row */}
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                   {/* Enhanced Charts Row */}
+                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Risk Distribution Chart */}
-                     <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h4 className="text-xs font-medium text-gray-900 mb-2">Risk Distribution</h4>
+                     <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4">Risk Distribution</h4>
                        <Plot
                          data={[
                            {
-                            x: Object.keys(dashboardData.summary.risk_distribution),
-                            y: Object.values(dashboardData.summary.risk_distribution),
-                            type: 'bar',
-                             marker: {
-                              color: ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6']
-                            }
+                            type: 'pie',
+                            labels: Object.keys(dashboardData.summary.risk_distribution),
+                            values: Object.values(dashboardData.summary.risk_distribution),
+                            marker: {
+                              colors: ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'],
+                              line: { color: '#ffffff', width: 2 }
+                            },
+                            textinfo: 'label+percent',
+                            textposition: 'outside',
+                            hole: 0.3,
+                            textfont: { size: 11 }
                            }
                          ]}
                          layout={{
-                           width: 250,
-                           height: 150,
-                           xaxis: { 
-                            title: { text: 'Risk' },
-                             zeroline: false
-                           },
-                           yaxis: { 
-                            title: { text: 'Clients' },
-                             zeroline: false
-                           },
+                           width: 280,
+                           height: 220,
                            showlegend: false,
-                           margin: { t: 15, b: 30, l: 40, r: 15 },
+                           margin: { t: 30, b: 30, l: 30, r: 30 },
                            plot_bgcolor: 'rgba(0,0,0,0)',
                            paper_bgcolor: 'rgba(0,0,0,0)',
+                           title: {
+                             text: 'Risk Distribution',
+                             font: { size: 12, color: '#374151' }
+                           }
                          }}
                          config={{ displayModeBar: false }}
                        />
                      </div>
 
                     {/* Fraud Risk Summary Chart */}
-                     <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h4 className="text-xs font-medium text-gray-900 mb-2">Fraud Risk Summary</h4>
+                     <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4">Fraud Risk Summary</h4>
                        <Plot
                          data={[
                            {
-                            labels: ['Low', 'Medium', 'High'],
+                            labels: ['Low Risk', 'Medium Risk', 'High Risk'],
                             values: [
                               dashboardData.summary.fraud_risk_summary.low,
                               dashboardData.summary.fraud_risk_summary.medium,
@@ -480,20 +592,124 @@ const AdvisorDashboard: React.FC = () => {
                             ],
                             type: 'pie',
                              marker: {
-                              colors: ['#10B981', '#F59E0B', '#EF4444']
-                            }
+                              colors: ['#10B981', '#F59E0B', '#EF4444'],
+                              line: { color: '#ffffff', width: 2 }
+                            },
+                            textinfo: 'label+percent',
+                            textposition: 'outside',
+                            hole: 0.4,
+                            textfont: { size: 11 }
                            }
                          ]}
                          layout={{
-                           width: 250,
-                           height: 150,
+                           width: 280,
+                           height: 220,
                            showlegend: false,
-                          margin: { t: 15, b: 30, l: 15, r: 15 },
+                          margin: { t: 30, b: 30, l: 30, r: 30 },
                            plot_bgcolor: 'rgba(0,0,0,0)',
                            paper_bgcolor: 'rgba(0,0,0,0)',
                          }}
                          config={{ displayModeBar: false }}
                        />
+                     </div>
+
+                                         {/* Portfolio Performance Trend */}
+                     <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4">Portfolio Trend</h4>
+                       <Plot
+                         data={[
+                           {
+                            x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            y: [
+                              (selectedClient?.current_savings || 100000) * 0.95,
+                              (selectedClient?.current_savings || 100000) * 0.97,
+                              (selectedClient?.current_savings || 100000) * 0.99,
+                              (selectedClient?.current_savings || 100000) * 1.02,
+                              (selectedClient?.current_savings || 100000) * 1.05,
+                              selectedClient?.current_savings || 100000
+                            ],
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            line: { color: '#3B82F6', width: 3 },
+                            marker: { size: 6, color: '#3B82F6' }
+                           }
+                         ]}
+                         layout={{
+                           width: 280,
+                           height: 220,
+                           xaxis: { 
+                            title: { text: 'Month', font: { size: 12 } },
+                             zeroline: false,
+                             gridcolor: '#f3f4f6',
+                             tickangle: 0
+                           },
+                           yaxis: { 
+                            title: { text: 'Value (£)', font: { size: 12 } },
+                             zeroline: false,
+                             gridcolor: '#f3f4f6',
+                             tickformat: ',.0f'
+                           },
+                           showlegend: false,
+                           margin: { t: 30, b: 60, l: 70, r: 30 },
+                           plot_bgcolor: 'rgba(0,0,0,0)',
+                           paper_bgcolor: 'rgba(0,0,0,0)',
+                         }}
+                         config={{ displayModeBar: false }}
+                       />
+                     </div>
+                   </div>
+
+             
+                    {/* Professional Insights Section */}
+                    <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                     <div className="flex items-center space-x-3 mb-3">
+                       <div className="p-2 bg-blue-500 rounded-lg">
+                         <ChartBarIcon className="h-5 w-5 text-white" />
+                       </div>
+                       <h4 className="text-sm font-semibold text-blue-900">AegisAI Professional Insights</h4>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                       <div className="bg-white rounded-lg p-3 border border-blue-200">
+                         <div className="flex items-center space-x-2 mb-2">
+                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                           <span className="text-xs font-semibold text-green-700">Portfolio Health</span>
+                         </div>
+                         <p className="text-xs text-gray-700">
+                           {selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.5 ? 
+                             'Excellent portfolio health with strong risk-adjusted returns' :
+                            selectedClient?.anomaly_score && selectedClient.anomaly_score < 0.8 ? 
+                             'Good portfolio health with moderate risk exposure' :
+                             'Portfolio requires attention due to elevated risk levels'}
+                         </p>
+                       </div>
+                       
+                       <div className="bg-white rounded-lg p-3 border border-blue-200">
+                         <div className="flex items-center space-x-2 mb-2">
+                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                           <span className="text-xs font-semibold text-blue-700">Risk Assessment</span>
+                         </div>
+                         <p className="text-xs text-gray-700">
+                           Risk score of {(selectedClient?.anomaly_score || 0).toFixed(2)} indicates 
+                           {(selectedClient?.anomaly_score || 0) > 0.8 ? ' high risk requiring immediate review' :
+                            (selectedClient?.anomaly_score || 0) > 0.5 ? ' moderate risk with monitoring needed' :
+                             ' low risk with stable performance'}
+                         </p>
+                       </div>
+                       
+                       <div className="bg-white rounded-lg p-3 border border-blue-200">
+                         <div className="flex items-center space-x-2 mb-2">
+                           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                           <span className="text-xs font-semibold text-purple-700">Recommendations</span>
+                         </div>
+                         <p className="text-xs text-gray-700">
+                           {selectedClient?.age && selectedClient.age < 50 ? 
+                             'Consider growth-focused strategies for long-term horizon' :
+                            selectedClient?.age && selectedClient.age < 65 ? 
+                             'Balanced approach recommended for mid-career planning' :
+                             'Conservative strategies advised for retirement preparation'}
+                         </p>
+                       </div>
                      </div>
                    </div>
                  </div>
@@ -523,7 +739,9 @@ const AdvisorDashboard: React.FC = () => {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <div className="text-sm leading-relaxed">
+                          {formatMessageContent(message.content, message.type)}
+                        </div>
                         
                         <div className="text-xs text-gray-400 mt-2">
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -583,8 +801,8 @@ const AdvisorDashboard: React.FC = () => {
         {/* Quick Actions Sidebar */}
         <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h3>
-            <p className="text-sm text-gray-600">Common queries for {selectedClient?.full_name}</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">AegisAI Quick Analysis</h3>
+            <p className="text-sm text-gray-600">AI-powered insights for {selectedClient?.full_name}</p>
           </div>
           
           <div className="space-y-2 mb-4">
@@ -642,14 +860,16 @@ const AdvisorDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Demo Info */}
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          {/* AegisAI Info */}
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="flex items-start space-x-3">
-              <ExclamationTriangleIcon className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div className="p-2 bg-blue-500 rounded-lg">
+                <CpuChipIcon className="h-5 w-5 text-white" />
+              </div>
               <div>
-                <h4 className="text-sm font-medium text-blue-900">Real Data Dashboard</h4>
+                <h4 className="text-sm font-medium text-blue-900">AegisAI Professional Platform</h4>
                 <p className="text-xs text-blue-700 mt-1">
-                  This dashboard now shows real client data from your backend API with interactive Plotly charts and AI-powered insights.
+                  Advanced portfolio analytics with real-time data, interactive charts, and AI-powered insights for professional financial advisors.
                 </p>
               </div>
             </div>

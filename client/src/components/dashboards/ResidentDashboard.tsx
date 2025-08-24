@@ -25,7 +25,7 @@ const ResidentDashboard: React.FC = () => {
     {
       id: '1',
       type: 'assistant',
-      content: "Hello! I'm your Pension AI assistant. I can help you understand your pension data, analyze risk scores, detect fraud, and provide insights. What would you like to know?",
+      content: "Hello! I'm your Aegis AI assistant. I can help you understand your pension data, analyze risk scores, detect fraud, and provide insights. What would you like to know?",
       timestamp: new Date(),
     }
   ]);
@@ -36,6 +36,12 @@ const ResidentDashboard: React.FC = () => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // PDF Upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Get current user on component mount
   useEffect(() => {
@@ -79,7 +85,8 @@ const ResidentDashboard: React.FC = () => {
       description: "Understand tax benefits and implications",
       icon: LightBulbIcon,
       category: "tax"
-    }
+    },
+
   ];
 
   const categories = [
@@ -118,9 +125,10 @@ const ResidentDashboard: React.FC = () => {
     setIsLoading(true);
     setShowWelcome(false);
 
-    try {
+        try {
       // Call the real AI API endpoint
       console.log('Sending query to AI API:', inputValue);
+      
       const response = await apiClient.processPrompt(inputValue);
       
       console.log('AI API Response:', response);
@@ -150,6 +158,7 @@ const ResidentDashboard: React.FC = () => {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('AI API Error:', error);
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -189,6 +198,167 @@ const ResidentDashboard: React.FC = () => {
     return colors[category] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
+  // PDF Upload handlers
+  const handlePDFUpload = async (file: File) => {
+    if (!file) return;
+    
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      setUploadStatus('Error: Only PDF files are allowed. Please select a PDF document.');
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => {
+        setUploadStatus('');
+      }, 5000);
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadStatus('Error: File size must be less than 10MB. Please select a smaller PDF file.');
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => {
+        setUploadStatus('');
+      }, 5000);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadStatus('Uploading PDF...');
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      await apiClient.uploadPDF(file);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadStatus('PDF uploaded successfully!');
+      
+      // Add success message to chat
+      const successMessage: Message = {
+        id: Date.now().toString(),
+        type: 'assistant',
+        content: `✅ PDF "${file.name}" uploaded successfully!`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, successMessage]);
+      
+      // Clear status after 5 seconds
+      setTimeout(() => {
+        setUploadStatus('');
+        setUploadProgress(0);
+      }, 5000);
+
+    } catch (error: any) {
+      console.error('PDF Upload Error:', error);
+      setUploadStatus(`Upload failed: ${error.message}`);
+      setUploadProgress(0);
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => {
+        setUploadStatus('');
+      }, 5000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handlePDFUpload(file);
+    }
+    // Reset the input value so the same file can be selected again
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Drag and drop handlers
+  const [isDragOver, setIsDragOver] = useState(false);
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const pdfFile = files.find(file => file.type === 'application/pdf');
+    
+    if (pdfFile) {
+      handlePDFUpload(pdfFile);
+    } else {
+      setUploadStatus('Error: Please drop a PDF file. Only PDF documents are supported.');
+      setTimeout(() => setUploadStatus(''), 5000);
+    }
+  };
+
+
+
+  // Enhanced message formatting function for better UX
+  const formatMessageContent = (content: string) => {
+    if (!content) return null;
+
+    // Split content into paragraphs
+    const paragraphs = content.split('\n').filter(p => p.trim());
+    
+    return (
+      <div className="space-y-3">
+        {paragraphs.map((paragraph, index) => {
+          // Check if paragraph contains numbers/percentages
+          const hasNumbers = /\d+%|\d+\.\d+|\d+/.test(paragraph);
+          
+          return (
+            <div key={index} className={`${hasNumbers ? 'bg-blue-50 p-3 rounded-lg border-l-4 border-blue-200' : ''}`}>
+              <p className="leading-relaxed">
+                {paragraph.split(' ').map((word, wordIndex) => {
+                  // Highlight all important elements with professional light blue theme
+                  if (/\d+%|\d+\.\d+|\d+/.test(word) || 
+                      ['risk', 'fraud', 'projection', 'pension', 'amount', 'balance', 'growth', 'score', 'value', 'total'].some(term => word.toLowerCase().includes(term))) {
+                    return (
+                      <span key={wordIndex} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold mx-1 border border-blue-200 shadow-sm hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-default">
+                        {word}
+                      </span>
+                    );
+                  }
+                  return <span key={wordIndex}>{word} </span>;
+                })}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Single Consolidated Header */}
@@ -199,7 +369,7 @@ const ResidentDashboard: React.FC = () => {
               <CpuChipIcon className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Pension AI</h1>
+                              <h1 className="text-xl font-bold text-gray-900">Aegis AI</h1>
               <p className="text-sm text-gray-500">Your Personal Pension Assistant</p>
             </div>
           </div>
@@ -248,7 +418,7 @@ const ResidentDashboard: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <SparklesIcon className="h-6 w-6" />
                 <div>
-                  <h3 className="font-semibold">Welcome to Pension AI!</h3>
+                  <h3 className="font-semibold">Welcome to Aegis AI!</h3>
                   <p className="text-sm text-blue-100">Ask me anything about your pension - I'm here to help you understand your financial future.</p>
                 </div>
                 <button 
@@ -261,7 +431,73 @@ const ResidentDashboard: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* PDF Upload Success Banner */}
+          {uploadStatus && uploadStatus.includes('successfully') && (
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 text-white">
+              <div className="flex items-center space-x-3">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <div>
+                  <h3 className="font-semibold">PDF Uploaded Successfully!</h3>
+                  <p className="text-sm text-green-100">Your document is now ready for analysis. Ask me questions about your pension data!</p>
+                </div>
+                <button 
+                  onClick={() => setUploadStatus('')}
+                  className="ml-auto text-green-100 hover:text-white transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div 
+            className={`flex-1 overflow-y-auto px-6 py-4 space-y-4 transition-all duration-200 ${
+              isDragOver ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {/* Drag and Drop Indicator */}
+            {isDragOver && (
+              <div className="flex justify-center items-center py-8">
+                <div className="bg-blue-100 border-2 border-dashed border-blue-400 rounded-2xl px-8 py-6 text-center">
+                  <svg className="h-12 w-12 text-blue-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <h4 className="text-lg font-medium text-blue-900 mb-2">Drop PDF Here</h4>
+                  <p className="text-sm text-blue-700">Release to upload your pension document</p>
+                </div>
+              </div>
+            )}
+
+            {/* PDF Upload Info Message */}
+            {messages.length === 1 && !isDragOver && (
+              <div className="flex justify-center">
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl px-6 py-4 max-w-md">
+                  <div className="text-center">
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h4 className="font-medium text-blue-900 mb-2">Get Started with PDF Analysis</h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      Upload a pension document to get personalized insights and analysis. I can help you understand your financial data better!
+                    </p>
+                    <button
+                      onClick={triggerFileUpload}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      Upload PDF Document
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -281,8 +517,12 @@ const ResidentDashboard: React.FC = () => {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <div className="text-sm leading-relaxed">
+                        {formatMessageContent(message.content)}
+                      </div>
                        
+                      
+
                       {/* Enhanced Chart Display */}
                       {(() => {
                         console.log('Rendering charts with data:', message.chartData);
@@ -404,13 +644,25 @@ const ResidentDashboard: React.FC = () => {
                 )}
               </div>
               <button
-                className="px-4 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 flex items-center space-x-2"
-                title="Upload PDF"
+                onClick={triggerFileUpload}
+                disabled={isUploading}
+                className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center space-x-2 ${
+                  isUploading 
+                    ? 'bg-blue-100 text-blue-600 cursor-not-allowed' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2'
+                }`}
+                title="Upload PDF document for analysis and insights"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span className="hidden sm:inline">PDF</span>
+                {isUploading ? (
+                  <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 002 2v14a2 2 0 002 2z" />
+                  </svg>
+                )}
+                <span className="hidden sm:inline">
+                  {isUploading ? 'Uploading...' : 'PDF'}
+                </span>
               </button>
               <button
                 onClick={handleSendMessage}
@@ -421,6 +673,50 @@ const ResidentDashboard: React.FC = () => {
                 <span>Send</span>
               </button>
             </div>
+            
+            {/* Hidden file input for PDF upload */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
+            {/* Upload progress indicator */}
+            {isUploading && (
+              <div className="mt-3 px-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-800">
+                      {uploadStatus}
+                    </span>
+                    <span className="text-sm text-blue-600">
+                      {uploadProgress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Upload status message */}
+            {uploadStatus && !isUploading && (
+              <div className="mt-3 px-4">
+                <div className={`rounded-lg p-3 ${
+                  uploadStatus.includes('Error') || uploadStatus.includes('failed')
+                    ? 'bg-red-50 border border-red-200 text-red-800'
+                    : 'bg-green-50 border border-green-200 text-green-800'
+                }`}>
+                  <span className="text-sm font-medium">{uploadStatus}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 // API service for Pension AI backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000';
 
 // Types for API responses
 export interface LoginResponse {
@@ -37,6 +37,13 @@ export interface PromptResponse {
   data_source?: string;
   search_type?: string;
   pdf_status?: string;
+}
+
+// PDF Upload Types
+export interface PDFUploadResponse {
+  status: string;
+  filename: string;
+  message: string;
 }
 
 // Advisor Dashboard Types
@@ -239,6 +246,27 @@ class ApiClient {
   // Resident-specific endpoints
   async getResidentDashboard(): Promise<any> {
     return this.request('/resident/dashboard');
+  }
+
+  // PDF Upload endpoint
+  async uploadPDF(file: File): Promise<PDFUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${this.baseURL}/pension/me/upload_document`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${TokenManager.getToken()}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `PDF upload failed! status: ${response.status}`);
+    }
+
+    return await response.json();
   }
 
   // Health check

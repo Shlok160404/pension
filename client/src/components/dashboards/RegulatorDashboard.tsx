@@ -67,11 +67,8 @@ const RegulatorDashboard: React.FC = () => {
 
   const quickQueries = [
     "Show high-risk members",
-    "Fraud detection summary",
     "Geographic risk analysis",
-    "Portfolio performance trends",
-    "Suspicious activity report",
-    "Compliance overview"
+    "Portfolio performance trends"
   ];
 
   // Load regulator dashboard data on component mount

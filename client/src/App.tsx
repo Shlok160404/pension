@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { tokenManager } from './services/api';
-import PensionAILanding from './pages/LandingPage';
+import AegisAILanding from './pages/LandingPage';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import ResidentDashboard from './components/dashboards/ResidentDashboard';
@@ -65,11 +65,11 @@ function App() {
         ) : currentPage === 'signup' ? (
           <Signup />
         ) : currentPage === 'landing' ? (
-          <PensionAILanding onNavigate={setCurrentPage} />
+          <AegisAILanding onNavigate={setCurrentPage} />
         ) : CurrentComponent ? (
           <CurrentComponent />
         ) : (
-          <PensionAILanding onNavigate={setCurrentPage} />
+          <AegisAILanding onNavigate={setCurrentPage} />
         )}
       </main>
     </div>

@@ -12,11 +12,11 @@ import {
 } from '@heroicons/react/24/outline';
 import { tokenManager } from '../services/api';
 
-interface PensionAILandingProps {
+interface AegisAILandingProps {
   onNavigate: (page: string) => void;
 }
 
-const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
+const AegisAILanding: React.FC<AegisAILandingProps> = ({ onNavigate }) => {
   const [isVisible, setIsVisible] = useState<Record<string, boolean>>({});
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [showContent, setShowContent] = useState(false);
@@ -105,7 +105,7 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
               <CpuChipIcon className="w-12 h-12 text-blue-600" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Pension AI</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Aegis AI</h2>
           <div className="w-64 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-100"
@@ -128,7 +128,7 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
               <CpuChipIcon className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pension AI
+              Aegis AI
             </span>
           </div>
           <div className="flex items-center space-x-4">
@@ -170,17 +170,16 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
             <div className="space-y-8">
               <div className={`transform transition-all duration-1000 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Smart 
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> AI</span>
+                  Aegis AI: Your Pension's 
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Future</span>
                   <br />
-                  Pension
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"> Routing</span>
+                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">In Focus</span>
                 </h1>
               </div>
               
               <div className={`transform transition-all duration-1000 delay-300 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Revolutionary three-stage context-aware routing system that intelligently analyzes, visualizes, and optimizes your pension planning with AI-powered precision.
+                  From financial fog to future certainty. We are an enterprise-grade intelligence platform powered by a sophisticated multi-agent system that cuts through complexity to deliver clear, confident paths forward for everyone in the pension ecosystem.
                 </p>
               </div>
 
@@ -192,9 +191,14 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
                   <span className="font-semibold">Start Analysis</span>
                   <ArrowRightIcon className="w-5 h-5" />
                 </button>
-                <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-full hover:border-blue-500 hover:text-blue-500 transition-all duration-300">
-                  Watch Demo
-                </button>
+                <a 
+                  href="https://pension-zeta.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-full hover:border-blue-500 hover:text-blue-500 transition-all duration-300"
+                >
+                  Live Demo
+                </a>
               </div>
             </div>
 
@@ -283,10 +287,10 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto">
           <div className={`text-center mb-16 transform transition-all duration-1000 ${isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Three-Stage <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Intelligence</span>
+              The <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Aegis Engine</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our AI system routes every query through three intelligent stages for maximum accuracy and insight.
+              Powered by a sophisticated multi-agent system—a team of specialized AIs working in concert, orchestrated by LangGraph.
             </p>
           </div>
 
@@ -294,22 +298,22 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
             {[
               {
                 icon: BoltIcon,
-                title: 'Stage 1: Initial Routing',
-                description: 'Supervisor analyzes your query and routes to the right specialist agent',
+                title: 'AI Supervisor',
+                description: 'Central supervisor agent analyzes strategic intent and delegates to specialists',
                 color: 'from-yellow-400 to-orange-500',
                 delay: 0
               },
               {
                 icon: ChartBarIcon,
-                title: 'Stage 2: Smart Visualization',
-                description: 'Intelligent decision making for when to create charts and visual insights',
+                title: 'Specialist Agents',
+                description: 'Fraud Detection, Risk Analysis, and Projection Specialists working in harmony',
                 color: 'from-blue-400 to-purple-500',
                 delay: 200
               },
               {
                 icon: CheckCircleIcon,
-                title: 'Stage 3: Final Summary',
-                description: 'Complete consolidation of analysis, visuals, and recommendations',
+                title: 'Hybrid Intelligence',
+                description: 'ML-powered predictions + LLM reasoning for explainable, actionable insights',
                 color: 'from-green-400 to-blue-500',
                 delay: 400
               }
@@ -331,6 +335,80 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Multi-Agent System Section */}
+      <section 
+        ref={(el) => { sectionsRef.current[2] = el; }}
+        data-section="multiagent"
+        className="px-6 py-20 bg-gradient-to-r from-purple-50 to-pink-50"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className={`text-center mb-16 transform transition-all duration-1000 ${isVisible.multiagent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Multi-Agent</span> Intelligence
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              This isn't just another AI chatbot. Aegis is powered by a sophisticated multi-agent system—a team of specialized AIs working in concert.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl p-8 shadow-lg">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">How It Works</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">User Query</h4>
+                      <p className="text-gray-600">A user asks a question through their tailored dashboard</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-purple-500 rounded-full flex-shrink-0 mt-1"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">AI Supervisor</h4>
+                      <p className="text-gray-600">Central supervisor agent analyzes the query's strategic intent</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-pink-500 rounded-full flex-shrink-0 mt-1"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Intelligent Delegation</h4>
+                      <p className="text-gray-600">Routes to the right specialist: Fraud Detection, Risk Analysis, or Projection Specialist</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex-shrink-0 mt-1"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Trusted Results</h4>
+                      <p className="text-gray-600">Final structured answer backed by both ML accuracy and LLM-powered reasoning</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Hybrid Intelligence Approach</h3>
+              <div className="space-y-4">
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="font-semibold text-gray-900">ML First</h4>
+                  <p className="text-gray-600">Custom-trained XGBoost models deliver rapid, statistically powerful predictions</p>
+                </div>
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <h4 className="font-semibold text-gray-900">LLM Reasoning</h4>
+                  <p className="text-gray-600">Google Gemini provides human-readable explanations and actionable recommendations</p>
+                </div>
+                <div className="border-l-4 border-green-500 pl-4">
+                  <h4 className="font-semibold text-gray-900">Best of Both Worlds</h4>
+                  <p className="text-gray-600">Predictive power + explainable reasoning for complete confidence</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -389,7 +467,7 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
             <div className="relative z-10">
               <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Pension Planning?</h2>
               <p className="text-xl mb-8 opacity-90">
-                Experience the power of AI-driven pension analysis with our intelligent three-stage routing system.
+                Experience the power of Aegis AI's multi-agent intelligence system that delivers clarity from complexity.
               </p>
               <button className="bg-white text-gray-900 px-8 py-4 rounded-full font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                 Start Your Analysis Now
@@ -416,11 +494,11 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
               <CpuChipIcon className="w-4 h-4 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pension AI
+              Aegis AI
             </span>
           </div>
           <p className="text-gray-600">
-            © 2025 Pension AI. Intelligent routing for smarter pension planning.
+            © 2025 Aegis AI. Multi-agent intelligence for smarter pension planning.
           </p>
         </div>
       </footer>
@@ -428,4 +506,4 @@ const PensionAILanding: React.FC<PensionAILandingProps> = ({ onNavigate }) => {
   );
 };
 
-export default PensionAILanding;
+export default AegisAILanding;
