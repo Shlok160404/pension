@@ -22,14 +22,11 @@ app = FastAPI(title="Pension AI API", version="1.0.0")
 # ---------------------------
 # CORS Configuration
 # ---------------------------
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,https://pension-zeta.vercel.app")
+origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", 
-        "http://127.0.0.1:5173",  # Added IP address
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"   # Added IP address
-    ],
+    
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
