@@ -20,7 +20,7 @@ from .tools.tools import set_request_user_id, clear_request_user_id, set_request
 app = FastAPI(title="Pension AI API", version="1.0.0")
 
 # ---------------------------
-# CORS Configuration
+# CORS Configurationn
 # ---------------------------
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,https://pension-zeta.vercel.app")
 origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",")]
