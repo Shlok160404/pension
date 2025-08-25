@@ -1,7 +1,7 @@
 # Ultra-aggressive Railway .dockerignore
 # This minimizes build context to absolute essentials
 
-# Git and version contro
+# Git and version control
 .git
 .gitignore
 .gitattributes
@@ -69,6 +69,11 @@ env_template*
 *.orig
 *.rej
 *.patch
+
+# IMPORTANT: Keep these essential files
+!requirements.txt
+!start_server.py
+!app/
 
 # Database files
 *.db
