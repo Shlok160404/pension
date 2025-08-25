@@ -1,5 +1,5 @@
 // API service for Pension AI backend
-const API_BASE_URL = 'http://4.240.80.252';
+const API_BASE_URL = 'https://4.240.80.252.nip.io';
 
 // Types for API responses
 export interface LoginResponse {
