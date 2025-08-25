@@ -94,7 +94,7 @@ async def options_handler(full_path: str):
     response = JSONResponse(
         content={"message": "CORS preflight handled"},
         headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Origin": "https://pension-zeta.vercel.app",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Credentials": "true"
