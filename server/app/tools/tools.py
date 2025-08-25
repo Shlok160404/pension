@@ -141,7 +141,17 @@ def analyze_risk_profile(user_id: int = None) -> Dict[str, Any]:
         
         # Add data source information
         result["data_source"] = "DATABASE_PENSION_DATA"
-        result["note"] = "This risk analysis is based on your pension data stored in our database, not from uploaded documents."
+        
+        # Use role-aware language based on context
+        original_query = get_current_query_from_context() or ""
+        _, context_type = detect_role_based_context(original_query, current_user_id, db)
+        
+        if context_type == 'client':
+            result["note"] = "This risk analysis is based on the client's pension data stored in our database, not from uploaded documents."
+        elif context_type == 'self':
+            result["note"] = "This risk analysis is based on your pension data stored in our database, not from uploaded documents."
+        else:
+            result["note"] = "This risk analysis is based on the user's pension data stored in our database, not from uploaded documents."
         
         return result
     finally:
@@ -567,7 +577,7 @@ def detect_fraud(user_id: int = None) -> Dict[str, Any]:
                     "model_type": "XGBoost",
                     "features_used": len(features),
                     "data_source": "DATABASE_PENSION_DATA",
-                    "note": "This fraud detection analysis is based on your pension data stored in our database, not from uploaded documents."
+                    "note": "This fraud detection analysis is based on the client's pension data stored in our database, not from uploaded documents."
                 }
                 
         except Exception as e:
@@ -598,7 +608,7 @@ def detect_fraud(user_id: int = None) -> Dict[str, Any]:
         result["method"] = "Rule-Based"
         result["confidence"] = "Medium"
         result["data_source"] = "DATABASE_PENSION_DATA"
-        result["note"] = "This fraud detection analysis is based on your pension data stored in our database, not from uploaded documents."
+        result["note"] = "This fraud detection analysis is based on the client's pension data stored in our database, not from uploaded documents."
         
         return result
         
@@ -1003,7 +1013,7 @@ def project_pension(user_id: int = None, query: str = None) -> Dict[str, Any]:
             "progress_to_goal": f"{progress_percentage:.1f}%",
             "chart_data": chart_data,
             "data_source": "DATABASE_PENSION_DATA",
-            "note": "This analysis is based on your pension data stored in our database, not from uploaded documents."
+            "note": f"This analysis is based on the {'client' if context_type == 'client' else 'user' if context_type == 'self' else 'user'}'s pension data stored in our database, not from uploaded documents."
         }
         
         return response
@@ -1094,7 +1104,43 @@ def knowledge_base_search(query: str, user_id: int = None) -> Dict[str, Any]:
                         "relevance_score": 1 - distance if isinstance(distance, (int, float)) else 0.5
                     })
         
-        # SEARCH 2: User's uploaded PDF documents
+        # SEARCH 2: FAQ Knowledge Base
+        print(f"🔍 Searching FAQ knowledge base...")
+        faq_collection = get_or_create_collection("faq_collection")
+        faq_results = query_collection(faq_collection, [query], n_results=3)
+        
+        # Handle FAQ ChromaDB results properly
+        if faq_results and isinstance(faq_results, dict) and 'documents' in faq_results:
+            faq_docs = faq_results.get('documents', [])
+            faq_metadatas = faq_results.get('metadatas', [])
+            faq_distances = faq_results.get('distances', [])
+            
+            # ChromaDB returns nested lists, flatten them
+            if faq_docs and isinstance(faq_docs[0], list):
+                faq_docs = faq_docs[0]
+            if faq_metadatas and isinstance(faq_metadatas[0], list):
+                faq_metadatas = faq_metadatas[0]
+            if faq_distances and isinstance(faq_distances[0], list):
+                faq_distances = faq_distances[0]
+            
+            for i, (doc, metadata, distance) in enumerate(zip(faq_docs, faq_metadatas, faq_distances)):
+                if doc:  # Only add if document content exists
+                    # Extract question and answer from metadata
+                    question = metadata.get('question', '') if metadata else ''
+                    answer = metadata.get('answer', '') if metadata else ''
+                    
+                    # Create a formatted FAQ result
+                    faq_content = f"Question: {question}\nAnswer: {answer}" if question and answer else doc
+                    
+                    all_results.append({
+                        "result": len(all_results) + 1,
+                        "content": faq_content,
+                        "source": "FAQ Knowledge Base",
+                        "type": "faq_knowledge",
+                        "relevance_score": 1 - distance if isinstance(distance, (int, float)) else 0.5
+                    })
+        
+        # SEARCH 3: User's uploaded PDF documents
         print(f"🔍 Searching user's uploaded documents...")
         user_docs_collection = get_or_create_collection(f"user_{user_id}_docs")
         user_results = query_collection(user_docs_collection, [query], n_results=3)
@@ -1153,7 +1199,7 @@ def knowledge_base_search(query: str, user_id: int = None) -> Dict[str, Any]:
         if not all_results:
             return {
                 "found": False,
-                "message": "No relevant information found in either the general knowledge base or your uploaded documents.",
+                "message": "No relevant information found in the general knowledge base or your uploaded documents.",
                 "suggestions": [
                     "Try rephrasing your question",
                     "Use more specific terms",

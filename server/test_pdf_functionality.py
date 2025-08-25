@@ -97,7 +97,7 @@ def test_pdf_ingestion(pdf_path=None):
         from app.workflow import graph
         
         # Test query about uploaded document
-        test_query = "Based on my uploaded pension document, What information is available in my uploaded document??"
+        test_query = "Based on my uploaded pension document, What is the income amount?"
         print(f"🤖 AI Query: '{test_query}'")
         
         # Pass user_id in the workflow state

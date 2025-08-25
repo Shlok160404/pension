@@ -27,6 +27,8 @@ class AgentState(TypedDict, total=False):
     plotly_figs: dict  # Changed from plotly_figures to match visualizer agent
     final_response: dict
     user_id: int  # Add user_id to state
+    agent_results: dict  # Track what agents have processed
+    needs_visualization: bool  # Track if visualization is needed
 
 
 # --- Graph Builder Function ---
@@ -46,6 +48,10 @@ def build_agent_workflow():
 
     # --- Supervisor Node ---
     def supervisor_node(state: AgentState):
+        # Initialize agent results tracking if not present
+        agent_results = state.get("agent_results", {})
+        turns = state.get("turns", 0)
+        
         # Simple routing based on query content
         user_query = ""
         for msg in state["messages"]:
@@ -64,21 +70,50 @@ def build_agent_workflow():
         # Check if user wants charts/visualizations
         wants_charts = any(word in query_lower for word in ["graph", "chart", "visual", "show me", "display", "plot"])
         
-        # Simple routing logic
-        if any(word in query_lower for word in ["risk", "volatility", "diversity", "debt"]):
-            next_value = "risk_analyst"
-        elif any(word in query_lower for word in ["fraud", "suspicious", "anomaly", "transaction"]):
-            next_value = "fraud_detector"
-        elif any(word in query_lower for word in ["projection", "growth", "future", "years", "retire", "savings", "income", "contribution"]):
-            next_value = "projection_specialist"
+        # First time through - route to appropriate agent
+        if turns == 0:
+            if any(word in query_lower for word in ["risk", "volatility", "diversity", "debt"]):
+                next_value = "risk_analyst"
+            elif any(word in query_lower for word in ["fraud", "suspicious", "anomaly", "transaction"]):
+                next_value = "fraud_detector"
+            elif any(word in query_lower for word in ["projection", "growth", "future", "years", "retire", "savings", "income", "contribution"]):
+                next_value = "projection_specialist"
+            else:
+                next_value = "projection_specialist"  # Default to pension specialist
+            
+            print(f"🔍 Supervisor: First pass - Routing to {next_value}")
+            return {
+                "next": next_value, 
+                "wants_charts": wants_charts,
+                "turns": turns + 1,
+                "needs_visualization": wants_charts
+            }
+        
+        # After agent processing - check what's needed next
         else:
-            next_value = "projection_specialist"  # Default to pension specialist
-        
-        print(f"🔍 Supervisor: Routing to {next_value}")
-        print(f"🔍 Supervisor: User wants charts: {wants_charts}")
-        
-        # Store chart request flag in state for later use
-        return {"next": next_value, "wants_charts": wants_charts}
+            # Check if we need visualization
+            if wants_charts and not agent_results.get("visualization_done"):
+                print(f"🔍 Supervisor: Agent processing complete, routing to visualizer")
+                return {
+                    "next": "visualizer",
+                    "turns": turns + 1
+                }
+            
+            # Check if we need summarization
+            elif agent_results.get("visualization_done") or not wants_charts:
+                print(f"🔍 Supervisor: All processing complete, routing to summarizer")
+                return {
+                    "next": "summarizer",
+                    "turns": turns + 1
+                }
+            
+            # Default fallback
+            else:
+                print(f"🔍 Supervisor: Default routing to summarizer")
+                return {
+                    "next": "summarizer",
+                    "turns": turns + 1
+                }
 
     # --- Generic Agent Runner ---
     def agent_node(state: AgentState, agent_runnable):
@@ -118,6 +153,7 @@ def build_agent_workflow():
                 if context_user_id:
                     user_id = context_user_id
                     agent_input["user_id"] = user_id
+                    agent_input["user_id"] = user_id
                     print(f"🔍 Workflow: Got user_id={user_id} from context")
                 else:
                     print(f"⚠️ Workflow: No user_id found in state or context")
@@ -144,8 +180,15 @@ def build_agent_workflow():
         if final_text:
             new_messages.append(AIMessage(content=final_text))
 
+        # Mark this agent as completed
+        agent_results = state.get("agent_results", {})
+        agent_results["agent_processing_done"] = True
+        
         # Return both messages and intermediate steps
-        updates = {"messages": new_messages}
+        updates = {
+            "messages": new_messages,
+            "agent_results": agent_results
+        }
         if new_intermediate_steps:
             updates["intermediate_steps"] = new_intermediate_steps
         return updates
@@ -197,21 +240,22 @@ def build_agent_workflow():
     # --- Wire up the graph ---
     workflow.set_entry_point("supervisor")
 
+    # Supervisor routes to agents
     workflow.add_conditional_edges("supervisor", lambda x: x["next"], {
         "risk_analyst": "risk_analyst",
         "fraud_detector": "fraud_detector",
         "projection_specialist": "projection_specialist",
-        "summarizer": "summarizer",
         "visualizer": "visualizer",
+        "summarizer": "summarizer",
     })
 
-    # After specialist agents -> go to visualizer (for charts)
-    workflow.add_edge("risk_analyst", "visualizer")
-    workflow.add_edge("fraud_detector", "visualizer")
-    workflow.add_edge("projection_specialist", "visualizer")
+    # Agents return to supervisor for review
+    workflow.add_edge("risk_analyst", "supervisor")
+    workflow.add_edge("fraud_detector", "supervisor")
+    workflow.add_edge("projection_specialist", "supervisor")
 
-    # After visualizer -> go to summarizer
-    workflow.add_edge("visualizer", "summarizer")
+    # Visualizer returns to supervisor for final routing
+    workflow.add_edge("visualizer", "supervisor")
 
     # After summarizer -> workflow ends
     workflow.add_edge("summarizer", END)
@@ -221,7 +265,7 @@ def build_agent_workflow():
 
 # Compile and make available
 graph = build_agent_workflow()
-print("✅ Simple multi-agent graph compiled successfully.")
+print("✅ Enhanced multi-agent graph compiled successfully.")
 
 
 def save_graph_image():

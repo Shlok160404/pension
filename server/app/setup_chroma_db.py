@@ -1,8 +1,8 @@
 """
 Ingest FAQs from a CSV into ChromaDB. CSV must contain columns: question, answer
 Usage:
-  python -m server.app.setup_chroma_db                 # looks for faqs.csv in repo root or alongside this file
-  python -m server.app.setup_chroma_db path\to\faqs.csv  # explicit path
+  python -m server.app.setup_chroma_db                 # looks for final_faqs_for_chroma.csv in repo root or alongside this file
+  python -m server.app.setup_chroma_db path\to\final_faqs_for_chroma.csv  # explicit path
 """
 
 import os
@@ -22,14 +22,14 @@ def _resolve_csv_path(arg_path: str | None) -> str:
         return arg_path
     # Try repo root
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    candidate_root = os.path.join(repo_root, 'faqs.csv')
+    candidate_root = os.path.join(repo_root, 'final_faqs_for_chroma.csv')
     if os.path.isfile(candidate_root):
         return candidate_root
     # Try alongside this file
-    candidate_local = os.path.join(os.path.dirname(__file__), 'faqs.csv')
+    candidate_local = os.path.join(os.path.dirname(__file__), 'final_faqs_for_chroma.csv')
     if os.path.isfile(candidate_local):
         return candidate_local
-    raise FileNotFoundError("faqs.csv not found. Provide a path: python -m server.app.setup_chroma_db path\\to\\faqs.csv")
+    raise FileNotFoundError("final_faqs_for_chroma.csv not found. Provide a path: python -m server.app.setup_chroma_db path\\to\\final_faqs_for_chroma.csv")
 
 
 def ingest_faqs_to_chroma(csv_path: str | None = None) -> dict:

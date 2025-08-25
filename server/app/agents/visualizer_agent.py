@@ -451,6 +451,11 @@ def create_visualizer_node():
 
         updates: Dict[str, Any] = {"messages": messages}
         
+        # Mark visualization as complete for supervisor routing
+        agent_results = state.get("agent_results", {})
+        agent_results["visualization_done"] = True
+        updates["agent_results"] = agent_results
+        
         # Add chart data safely
         try:
             if charts:

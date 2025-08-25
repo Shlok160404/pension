@@ -94,4 +94,10 @@ Question: {input}
         input_variables=["tools", "tool_names", "input", "agent_scratchpad", "user_id"]
     )
     agent = create_react_agent(llm, tools, prompt)
-    return AgentExecutor(agent=agent, tools=all_pension_tools, verbose=True, return_intermediate_steps=True)
+    return AgentExecutor(
+        agent=agent, 
+        tools=all_pension_tools, 
+        verbose=True, 
+        return_intermediate_steps=True,
+        handle_parsing_errors=True  # Add this to handle parsing errors gracefully
+    )
