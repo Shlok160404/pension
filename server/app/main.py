@@ -41,6 +41,7 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",  # Backend itself
     "http://127.0.0.1:8000",
+    "https://pension-zeta.vercel.app"
 ]
 
 # Add CORS middleware BEFORE any endpoints
@@ -75,7 +76,7 @@ async def add_cors_headers(request, call_next):
     response = await call_next(request)
     
     # Add CORS headers
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+    response.headers["Access-Control-Allow-Origin"] = "https://pension-zeta.vercel.app"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD"
     response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -111,7 +112,7 @@ async def test_cors():
     response = JSONResponse(
         content={"message": "CORS is working!", "timestamp": "now"},
         headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Origin": "https://pension-zeta.vercel.app",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Credentials": "true"
