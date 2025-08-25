@@ -12,10 +12,10 @@ from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 
 from .database import Base, engine, get_db
-from app import models, security, schemas
-from app.workflow import graph
-from app.file_ingestion import ingest_pdf_to_chroma
-from app.tools.tools import set_request_user_id, clear_request_user_id, set_request_query
+from . import models, security, schemas
+from .workflow import graph
+from .file_ingestion import ingest_pdf_to_chroma
+from .tools.tools import set_request_user_id, clear_request_user_id, set_request_query
 from fastapi.responses import StreamingResponse
 
 app = FastAPI(
