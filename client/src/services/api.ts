@@ -1,5 +1,5 @@
 // API service for Pension AI backend
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://pension-558131495519.asia-south1.run.app';
 
 // Types for API responses
 export interface LoginResponse {
