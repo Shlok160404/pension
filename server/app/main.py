@@ -21,7 +21,6 @@ from fastapi.responses import StreamingResponse
 app = FastAPI(
     title="Pension AI API", 
     version="1.0.0",
-    # Enable CORS at the app level
     openapi_tags=[
         {"name": "auth", "description": "Authentication endpoints"},
         {"name": "pension", "description": "Pension management endpoints"},
@@ -29,23 +28,22 @@ app = FastAPI(
     ]
 )
 
-# ---------------------------
-# CORS Configuration - Enhanced
-# ---------------------------
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "https://pension-zeta.vercel.app")
-origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+# Define your allowed origins
+origins = [
+    "https://pension-zeta.vercel.app",
+    # You can add other origins here, like a local development URL
+    # "http://localhost:3000", 
+]
 
-# Add CORS middleware BEFORE any endpoints
+# Add the CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=86400,
+    allow_methods=["*"], # Allow all methods
+    allow_headers=["*"], # Allow all headers
 )
-
+# --- End of CORS section ---
 # Debug CORS configuration
 print(f"🔧 CORS Configuration: Allowing origins: {origins}")
 print(f"🔧 CORS Middleware added successfully")
