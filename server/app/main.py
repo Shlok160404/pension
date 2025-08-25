@@ -11,7 +11,7 @@ import json
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 
-from app.database import Base, engine, get_db
+from .database import Base, engine, get_db
 from app import models, security, schemas
 from app.workflow import graph
 from app.file_ingestion import ingest_pdf_to_chroma
@@ -1420,4 +1420,4 @@ async def get_user_dashboard(
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("server.app.main:app", host="0.0.0.0", port=port, reload=True)
