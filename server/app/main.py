@@ -275,7 +275,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             "full_name": user.full_name
         },
         headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Origin": "https://pension-zeta.vercel.app",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "*",
             "Access-Control-Allow-Credentials": "true"
