@@ -38,16 +38,7 @@ const AdvisorDashboard: React.FC = () => {
   const [currentClientIndex, setCurrentClientIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const quickQueries = [
-    "📊 Portfolio Performance Analysis",
-    "🎯 Risk-Adjusted Return Metrics",
-    "💰 Asset Allocation Breakdown",
-    "🚨 Fraud Risk Assessment",
-    "🔍 Retirement Projection",
-    "💡 Investment Recommendations",
-    "🛡️ AegisAI Risk Insights",
-    "📈 Market Trend Analysis"
-  ];
+
 
   // Load dashboard data on component mount
   useEffect(() => {
@@ -151,9 +142,7 @@ const AdvisorDashboard: React.FC = () => {
     }
   };
 
-  const handleQuickQuery = (query: string) => {
-    setInputValue(query);
-  };
+
 
   const selectClient = (client: AdvisorClient) => {
     setSelectedClient(client);
@@ -207,9 +196,9 @@ const AdvisorDashboard: React.FC = () => {
   const formatMessageContent = (content: string, messageType: 'user' | 'assistant') => {
     if (!content) return null;
 
-    // For user messages, just return simple text without formatting
+    // For user messages, return simple text without any formatting or highlighting
     if (messageType === 'user') {
-      return <p className="leading-relaxed">{content}</p>;
+      return <p className="leading-relaxed text-white">{content}</p>;
     }
 
     // For AI assistant messages, apply the enhanced formatting
@@ -798,83 +787,7 @@ const AdvisorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Actions Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">AegisAI Quick Analysis</h3>
-            <p className="text-sm text-gray-600">AI-powered insights for {selectedClient?.full_name}</p>
-          </div>
-          
-          <div className="space-y-2 mb-4">
-            {quickQueries.map((query, index) => (
-              <button
-                key={index}
-                onClick={() => handleQuickQuery(query)}
-                className="w-full text-left p-3 rounded-lg border transition-all duration-200 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-full bg-gray-100">
-                    <ChartBarIcon className="h-4 w-4 text-gray-600" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {query}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Client List */}
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">All Clients</h4>
-            <div className="space-y-2">
-              {allClients.map((client, index) => (
-                <button
-                  key={client.user_id}
-                  onClick={() => {
-                    setCurrentClientIndex(index);
-                    selectClient(client);
-                  }}
-                  className={`w-full text-left p-3 rounded-lg border transition-all duration-200 ${
-                    currentClientIndex === index
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`h-3 w-3 rounded-full ${
-                        client.anomaly_score > 0.8 ? 'bg-red-500' : 
-                        client.anomaly_score > 0.5 ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}></div>
-                      <span className={`text-sm font-medium ${
-                        currentClientIndex === index ? 'text-blue-900' : 'text-gray-900'
-                      }`}>
-                        {client.full_name}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500">£{client.current_savings.toLocaleString()}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* AegisAI Info */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-blue-500 rounded-lg">
-                <CpuChipIcon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-blue-900">AegisAI Professional Platform</h4>
-                <p className="text-xs text-blue-700 mt-1">
-                  Advanced portfolio analytics with real-time data, interactive charts, and AI-powered insights for professional financial advisors.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );

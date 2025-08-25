@@ -324,10 +324,15 @@ const ResidentDashboard: React.FC = () => {
 
 
   // Enhanced message formatting function for better UX
-  const formatMessageContent = (content: string) => {
+  const formatMessageContent = (content: string, messageType?: 'user' | 'assistant') => {
     if (!content) return null;
 
-    // Split content into paragraphs
+    // For user messages, return simple text without any formatting or highlighting
+    if (messageType === 'user') {
+      return <p className="leading-relaxed">{content}</p>;
+    }
+
+    // For AI assistant messages, apply the enhanced formatting
     const paragraphs = content.split('\n').filter(p => p.trim());
     
     return (
@@ -518,7 +523,7 @@ const ResidentDashboard: React.FC = () => {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm leading-relaxed">
-                        {formatMessageContent(message.content)}
+                        {formatMessageContent(message.content, message.type)}
                       </div>
                        
                       

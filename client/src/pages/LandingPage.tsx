@@ -144,20 +144,12 @@ const AegisAILanding: React.FC<AegisAILandingProps> = ({ onNavigate }) => {
                 <span className="text-sm font-medium">Logout</span>
               </button>
             ) : (
-              <>
-                <button 
-                  onClick={() => onNavigate('login')}
-                  className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-200 font-medium"
-                >
-                  Login
-                </button>
-                <button 
-                  onClick={() => onNavigate('signup')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-medium"
-                >
-                  Sign Up
-                </button>
-              </>
+              <button 
+                onClick={() => onNavigate('login')}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-medium"
+              >
+                Login
+              </button>
             )}
           </div>
         </div>
@@ -170,16 +162,15 @@ const AegisAILanding: React.FC<AegisAILandingProps> = ({ onNavigate }) => {
             <div className="space-y-8">
               <div className={`transform transition-all duration-1000 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Aegis AI: Your Pension's 
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Future</span>
+                  Aegis AI: Where Financial Complexity
                   <br />
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">In Focus</span>
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Meets AI Simplicity</span>
                 </h1>
               </div>
               
               <div className={`transform transition-all duration-1000 delay-300 ${showContent ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  From financial fog to future certainty. We are an enterprise-grade intelligence platform powered by a sophisticated multi-agent system that cuts through complexity to deliver clear, confident paths forward for everyone in the pension ecosystem.
+                  Where Financial Complexity Meets AI Simplicity
                 </p>
               </div>
 
@@ -191,14 +182,12 @@ const AegisAILanding: React.FC<AegisAILandingProps> = ({ onNavigate }) => {
                   <span className="font-semibold">Start Analysis</span>
                   <ArrowRightIcon className="w-5 h-5" />
                 </button>
-                <a 
-                  href="https://pension-zeta.vercel.app/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <button 
+                  onClick={() => onNavigate('login')}
                   className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-full hover:border-blue-500 hover:text-blue-500 transition-all duration-300"
                 >
                   Live Demo
-                </a>
+                </button>
               </div>
             </div>
 
@@ -351,7 +340,7 @@ const AegisAILanding: React.FC<AegisAILandingProps> = ({ onNavigate }) => {
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Multi-Agent</span> Intelligence
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              This isn't just another AI chatbot. Aegis is powered by a sophisticated multi-agent system—a team of specialized AIs working in concert.
+              This isn't just another AI chatbot. Aegis Ai is powered by a sophisticated multi-agent system—a team of specialized AIs working in concert.
             </p>
           </div>
 
