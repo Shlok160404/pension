@@ -144,9 +144,7 @@ const AdvisorDashboard: React.FC = () => {
 
 
 
-  const selectClient = (client: AdvisorClient) => {
-    setSelectedClient(client);
-  };
+
 
   const getClientList = (): AdvisorClient[] => {
     if (!dashboardData) return [];
